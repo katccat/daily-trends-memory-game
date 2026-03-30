@@ -3,6 +3,7 @@
 	--global-padding: 8px;
 	--gap: 8px;
 	--bg-color: rgb(250, 250, 250);
+	--cell-thickness: 14px;
 }
 
 /* Typography */
@@ -29,9 +30,13 @@ body {
 	-webkit-tap-highlight-color: transparent;
 	align-content: center;
 	user-select: none;
-	/*background-image: url("../images/bg.gif");*/
+	background-image: url("../images/cloudbg.png");
+	background-position: center;
 	background-size: cover;
 	background-color: var(--bg-color);
+}
+body.active {
+	background-image: none;
 }
 body.dark {
 	background-color: rgb(43, 43, 43) !important;

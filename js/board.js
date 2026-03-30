@@ -22,7 +22,7 @@ export class BoardCreator {
 		},
 		phone: {
 			easy: [8, 12, 12],
-			medium: [16, 18, 20],
+			medium: [18, 18],
 			hard: [24],
 		}
 	};

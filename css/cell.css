@@ -42,23 +42,28 @@
 	width: 100%;
 	height: 100%;
 	transform-style: preserve-3d;
+	transform: translateZ(calc(var(--cell-thickness) * -1));
 	transition:
 		transform 0.5s ease-out,
-		box-shadow 0.3s linear;
+		box-shadow 0.4s linear;
 	will-change: transform;
 }
 
 .cell-card:hover {
-	box-shadow: 0px 0px 18px 4px rgba(0, 0, 0, 0.16);
-	/*transform: scale(1.025);*/
+	/*box-shadow: 0px 0px 18px 4px rgba(0, 0, 0, 0.16);*/
+	box-shadow: 
+		rgba(0, 0, 0, 0.024) 0px 0px 0px 1px,
+		rgba(0, 0, 0, 0.05) 0px 1px 0px 0px,
+		rgba(0, 0, 0, 0.03) 0px 0px 8px 0px,
+		rgba(0, 0, 0, 0.1) 0px 20px 30px 0px;
 }
 
 .cell-card.unhide {
-	transform: rotateX(-180deg);
+	transform: translateZ(calc(var(--cell-thickness) * -1)) rotateX(-180deg);
 }
 
 .cell-card.scale.unhide {
-	transform: rotateX(-180deg) scale(1.02);
+	transform: translateZ(calc(var(--cell-thickness) * -1)) rotateX(-180deg) scale(1.02);
 }
 
 /* --- Card Front: Mask (face-down state) --- */
@@ -76,8 +81,53 @@
 	background-size: cover;
 
 	/* Faces forward by default; hidden after flip */
-	transform: rotateX(0deg);
+	transform: translateZ(calc(var(--cell-thickness) * 1));
 	backface-visibility: hidden;
+}
+.cell-edge {
+	position: absolute;
+	background-color: rgb(213, 213, 213);
+	backface-visibility: hidden;
+}
+
+/* Top and bottom edges span full width, height = thickness */
+.cell-edge--top,
+.cell-edge--bottom {
+	width: 100%;
+	height: var(--cell-thickness);
+	left: 0;
+}
+
+/* Left and right edges span full height, width = thickness */
+.cell-edge--left,
+.cell-edge--right {
+	width: var(--cell-thickness);
+	height: 100%;
+	top: 0;
+}
+
+.cell-edge--top {
+	top: 0;
+	transform: rotateX(90deg);
+	transform-origin: top center;
+}
+
+.cell-edge--bottom {
+	bottom: 0;
+	transform: rotateX(-90deg);
+	transform-origin: bottom center;
+}
+
+.cell-edge--left {
+	left: 0;
+	transform: rotateY(-90deg);
+	transform-origin: left center;
+}
+
+.cell-edge--right {
+	right: 0;
+	transform: rotateY(90deg);
+	transform-origin: right center;
 }
 
 /* --- Card Back: Image (revealed state) --- */
@@ -102,12 +152,11 @@
 	width: 100%;
 	height: 100%;
 	color: white;
-	
-	background-color: rgba(0, 0, 0, 0.7);
 	backdrop-filter: blur(0.8px);
+	background-color: rgba(0, 0, 0, 0.7);
 	opacity: 0;
-
-	transition: opacity 0.6s linear, transform 0.6s ease-out;
+	box-shadow: -4px 0px 15px 0px rgba(0, 0, 0, 0.24);
+	transition: opacity 0.6s linear, transform 1s ease-out;
 }
 .cell-label {
 	font-family: "Google Sans";

@@ -295,7 +295,7 @@ class Game {
 		// ── Fade grid back in ────────────────────────────────────────
 		Elements.tooltip.classList.add('active');
 		Elements.grid.classList.add('active');
-
+		document.body.classList.add('active');
 
 		// ── Activate cells (animates in one by one) ──────────────────
 		await this.activateCells(this.board);
@@ -512,8 +512,6 @@ async function init() {
 	} else game.memory.saveProgress = false;
 	game.initScore(game.trendSelector.getScore());
 	Graphics.resetToolTip(game, false);
-	//
-	
 	globalThis.game = game;
 	game.newGame(true);
 	window.addEventListener('resize', () => game.gridLayout.resizeGrid());

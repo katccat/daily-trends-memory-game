@@ -33,7 +33,15 @@ export class Cell {
 			labelBuffer: null,
 			number: document.createElement('div'),
 			front: document.createElement('div'),
+			edgeTop: document.createElement('div'),
+			edgeBottom: document.createElement('div'),
+			edgeLeft: document.createElement('div'),
+			edgeRight: document.createElement('div'),
 		};
+		this.build();
+		this.elements.parent.addEventListener('click', () => this.unhide());
+	}
+	build() {
 		this.elements.parent.className = 'cell-wrapper';
 
 		this.elements.card.className = 'cell-card';
@@ -54,7 +62,17 @@ export class Cell {
 		this.elements.front.className = 'cell-front';
 		this.elements.card.appendChild(this.elements.front);
 
-		this.elements.parent.addEventListener('click', () => this.unhide());
+		this.elements.edgeTop.className = 'cell-edge cell-edge--top';
+		this.elements.card.appendChild(this.elements.edgeTop);
+
+		this.elements.edgeBottom.className = 'cell-edge cell-edge--bottom';
+		this.elements.card.appendChild(this.elements.edgeBottom);
+
+		this.elements.edgeLeft.className = 'cell-edge cell-edge--left';
+		this.elements.card.appendChild(this.elements.edgeLeft);
+
+		this.elements.edgeRight.className = 'cell-edge cell-edge--right';
+		this.elements.card.appendChild(this.elements.edgeRight);
 	}
 	getElement() {
 		return this.elements.parent;
@@ -90,7 +108,11 @@ export class Cell {
 		this.id = word;
 		this.displayName = trendObject.nickname || word;
 		this.elements.image.style.backgroundImage = `url(${trendObject.url?.[0]})`;
-		if (trendObject.views) {
+		/*if (trendObject.rank) {
+			this.views = trendObject.rank;
+			this.elements.number.textContent = trendObject.rank;
+		}
+		else */if (trendObject.views) {
 			this.views = trendObject.views;
 			this.elements.number.textContent = trendObject.views;
 		}
@@ -107,11 +129,11 @@ export class Cell {
 	}
 	hide() {
 		this.state = Cell.State.DEFAULT;
-		this.elements.card.classList.toggle('scale', false);
-		this.elements.card.classList.toggle('unhide', false);
+		this.elements.card.classList.remove('scale');
+		this.elements.card.classList.remove('unhide');
 	}
 	async shake() {
-		this.elements.card.classList.toggle('scale', false);
+		this.elements.card.classList.remove('scale');
 		const animation = this.elements.parent.animate(Config.animation.shake.keyframes, Config.animation.shake.options);
 		this.transitioning = Promise.all([
 			animation.finished,
@@ -123,8 +145,8 @@ export class Cell {
 		this.game.state.cellsFading = false;
 		this.state = Cell.State.REVEALED;
 		this.game.state.revealedCells.push(this);
-		this.elements.card.classList.toggle('scale', true);
-		this.elements.card.classList.toggle('unhide', true);
+		this.elements.card.classList.add('scale');
+		this.elements.card.classList.add('unhide');
 		this.transitioning = Promise.all([
 			awaitTransition(this.elements.card),
 			new Promise(resolve => setTimeout(resolve, 500))
@@ -132,7 +154,7 @@ export class Cell {
 	}
 	solve() {
 		this.state = Cell.State.SOLVED;
-		this.elements.card.classList.toggle('scale', false);
+		this.elements.card.classList.remove('scale');
 	}
 	setFrontGlyph(src) {
 		this.elements.front.style.backgroundImage = `url(${src})`;
@@ -205,7 +227,9 @@ export class CellSolvedLoop {
 		const animation = Config.animation.slide.right;
 		
 		this.start = async () => {
+			
 			await Promise.all(bgElements.map(el => el.animate(animation.keyframes, animation.options).finished));
+			bgElements.forEach(el => el.classList.add('blur'));
 			await Graphics.typeText(lines, ...labelElements);
 			await new Promise(r => setTimeout(r, 1000));
 			typingResolver();
