@@ -106,7 +106,7 @@ export class Cell {
 	}
 	activate(word, trendObject) {
 		this.id = word;
-		this.displayName = trendObject.nickname || word;
+		this.displayName = trendObject.nickname || word.toLowerCase();
 		this.elements.image.style.backgroundImage = `url(${trendObject.url?.[0]})`;
 		/*if (trendObject.rank) {
 			this.views = trendObject.rank;
