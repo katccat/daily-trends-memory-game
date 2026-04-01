@@ -477,7 +477,7 @@ const TrendSelector = function (trendData, game) {
 async function init() {
 	await Config.getCategories();
 	const boards = [
-		new Board(10, Config.trendData.trends),
+		new Board(4, Config.trendData.trends),
 		new Board(8, Config.trendData.trends, 2, true),
 	];
 	const game = new Game(boards);
