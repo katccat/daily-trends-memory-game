@@ -91,9 +91,11 @@ export const Config = {
 	}
 };
 
-const IS_DEV = window.location.hostname !== 'clayrobot.net' &&
+const IS_DEV = 
+	window.location.hostname !== 'clayrobot.net' &&
 	window.location.hostname !== 'www.clayrobot.net' &&
-	window.location.hostname !== 'clayrobot.netlify.app';
+	window.location.hostname !== 'clayrobot.netlify.app' &&
+	window.location.hostname !== 'localhost';
 
 if (IS_DEV) {
 	Config.BACKEND = 'https://backend.clayrobot.net/dev/memorygame';
@@ -125,7 +127,7 @@ Config.getCategories = async function() {
 			});
 		} catch (err) {
 			console.warn('Failed to fetch remote index, falling back to local:', err.message);
-			this.trendData = await fetch('./words/fallback.json').then(res => res.json());
+			this.trendData = await fetch('/words/fallback.json').then(res => res.json());
 		}
 	}
 };

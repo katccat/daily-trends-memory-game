@@ -8,5 +8,6 @@ __pycache__/
 google-key.txt
 .DS_Store
 ._*
+*.pages
 .localized
 *.code-workspace

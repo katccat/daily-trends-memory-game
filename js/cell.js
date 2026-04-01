@@ -107,14 +107,14 @@ export class Cell {
 	activate(word, trendObject) {
 		this.id = word;
 		this.displayName = trendObject.nickname || word.toLowerCase();
-		this.elements.image.style.backgroundImage = `url(${trendObject.url?.[0]})`;
-		/*if (trendObject.rank) {
-			this.views = trendObject.rank;
-			this.elements.number.textContent = trendObject.rank;
-		}
-		else */if (trendObject.views) {
+		const image = Array.isArray(trendObject.url) ? trendObject.url[0] : trendObject.url;
+		this.elements.image.style.backgroundImage = `url(${image})`;
+		if (trendObject.views) {
 			this.views = trendObject.views;
 			this.elements.number.textContent = trendObject.views;
+		} else {
+			this.views = 0;
+			this.elements.number.textContent = '+1';
 		}
 		if (trendObject.special) this.bespoke = true;
 	}

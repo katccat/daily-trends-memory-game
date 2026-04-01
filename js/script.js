@@ -444,7 +444,7 @@ const TrendSelector = function (trendData, game) {
 				if (pool.length === 0) break;
 				const index = Math.floor(Math.random() * pool.length);
 				key = pool.splice(index, 1)[0];
-				const image = trends[key]?.url?.[0];
+				const image = Array.isArray(trends[key]?.url) ? trends[key].url[0] : trends[key]?.url;
 				if (usedImages.includes(image)) continue;
 				imageValid = (await isImageValid(image));
 				if (!imageValid) markUnusable(key);
