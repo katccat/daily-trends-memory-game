@@ -169,25 +169,22 @@ body.dark {
 	position: absolute;
 	top: 57%;
 	left: 50%;
-	transform: translate(-50%, -50%) rotate(-3deg);
+	transform: translate(-50%, -50%);
 	text-align: center;
 	opacity: 0;
 	will-change: transform, opacity;
 	pointer-events: none;
 	font-family: "Tiny5";
 	font-size: min(18vw, 7rem);
-	color: white;
+	color: rgb(247, 247, 247);
 	line-height: 120%;
-	text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+	text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.25);
 	transition: 
 		transform 1s,
 		opacity 0.5s linear;
 }
 #continue-prompt.fade-in {
 	opacity: 0.8 !important;
-}
-#continue-prompt.breathing {
-	animation: breathe 2s ease-in-out infinite;
 }
 
 @keyframes breathe {
@@ -232,7 +229,7 @@ body.dark {
 
 @media (max-width: 600px) {
 	#splash-container {
-		/*width: 6em;*/
+		width: 6em;
 	}
 
 	#splash-container.expand {

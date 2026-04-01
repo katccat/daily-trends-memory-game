@@ -21,9 +21,9 @@ export class BoardCreator {
 			hard: [30, 36],
 		},
 		phone: {
-			easy: [8, 12, 12],
-			medium: [18, 18],
-			hard: [24],
+			easy: [8, 10, 12],
+			medium: [14, 18],
+			hard: [20],
 		}
 	};
 	static levels = Config.difficulty;

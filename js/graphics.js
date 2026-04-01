@@ -50,8 +50,10 @@ Graphics.faceChanger = function(game) {
 		died1: 'images/faces/7b.png',
 		died2: 'images/faces/7b.png',
 		diedImmediately: 'images/faces/7a.png',
-		special: 'images/faces/sophisticated.png',
-		special2: 'images/faces/sophisticated2.png',
+		special1: 'images/faces/special1.png',
+		special2: 'images/faces/special2.gif',
+		special3: 'images/faces/special3.gif',
+		trophy: 'images/faces/trophy.gif',
 	};
 
 	let maxMistakes;
@@ -78,7 +80,7 @@ Graphics.faceChanger = function(game) {
 			return;
 		}
 		let length;
-		if (this.game.state.avoidableMistakes > 1 && !(faceDisplay.src == faceImages.default || faceDisplay.src == faceImages.special || faceDisplay.src == faceImages.special2)) {
+		if (this.game.state.avoidableMistakes > 1 && !(faceDisplay.src == faceImages.default || faceDisplay.src == faceImages.special1 || faceDisplay.src == faceImages.special2)) {
 			doSequence2 = true;
 			length = faceImages.mistake2.length;
 		}
@@ -93,11 +95,17 @@ Graphics.faceChanger = function(game) {
 		else faceDisplay.src = faceImages.mistake1[index];
 	}
 	this.resetFace = function (victory = false) {
-		if (victory && game.state.level >= Config.difficulty.hard && game.state.lives > 1) {
+		if (victory && game.getPercentScore() >= 100) {
+			faceDisplay.src = faceImages.trophy
+		}
+		else if (victory && game.getPercentScore() >= 90) {
+			faceDisplay.src = faceImages.special3;
+		}
+		else if (victory && game.getPercentScore() >= 75) {
 			faceDisplay.src = faceImages.special2;
 		}
-		else if (victory && game.state.level >= Config.difficulty.medium && game.state.lives > 1) {
-			faceDisplay.src = faceImages.special;
+		else if (victory && game.getPercentScore() >= 50) {
+			faceDisplay.src = faceImages.special1;
 		}
 		else {
 			faceDisplay.src = faceImages.default;
@@ -170,8 +178,8 @@ Graphics.lifeDisplay = {
 Graphics.resetToolTip = function(game, victory) {
 	Elements.levelDisplay.textContent = `Level ${game.state.level}`;
 	this.lifeDisplay.stageLives(game.state.lives);
-	game.faceChanger.resetFace(victory);
 	game.percentScorer.updateScore(game.memory.score);
+	game.faceChanger.resetFace(victory);
 }
 Graphics.PercentScorer = function (score) {
 	const scoreDisplay = Elements.scoreDisplay;
@@ -228,28 +236,25 @@ Graphics.colorSequencer = function(sequence) {
 		return color;
 	}
 }
-Graphics.typeText = async function(text, ...elements) {
-	const delayMs = 100;
-	elements.forEach(element => element.innerHTML = '');
-	for (let i = 0; i < text.length; i++) {
-		for (const char of text[i]) {
-			elements.forEach(element => element.innerHTML += char);
-			await new Promise(resolve => setTimeout(resolve, delayMs));
+Graphics.typeText = async function (text, ...elements) {
+	const delayMs = 90;
+	elements.forEach(element => {
+		element.innerHTML = '';
+		for (const char of text) {
+			const span = document.createElement('span');
+			span.textContent = char;
+			span.style.opacity = '0';
+			span.style.transition = 'opacity 0.15s linear';
+			element.appendChild(span);
 		}
-		if (i < text.length - 1) elements.forEach(element => element.innerHTML += '<br>');
-	}
-}
-Graphics.deleteText = async function(...elements) {
-	const delayMs = 30;
-	while (elements[0].innerHTML.length > 0) {
-		elements.forEach(element => {
-			const html = element.innerHTML;
-			// if the last characters are a tag e.g. <br>, strip the whole tag
-			if (html.endsWith('>')) {
-				element.innerHTML = html.replace(/<[^>]+>$/, '');
-			} else {
-				element.innerHTML = html.slice(0, -1);
-			}
+	});
+
+	const spanSets = elements.map(el => [...el.querySelectorAll('span')]);
+
+	for (let i = 0; i < text.length; i++) {
+		const index = i;
+		requestAnimationFrame(() => {
+			spanSets.forEach(spans => spans[index].style.opacity = '1');
 		});
 		await new Promise(resolve => setTimeout(resolve, delayMs));
 	}

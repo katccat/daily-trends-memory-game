@@ -213,9 +213,10 @@ class Game {
 		this.state.won = true;
 		this.state.coolDown = true;
 		if (this.board.giveLife) this.addLife();
-		this.faceChanger.resetFace(true);
+		
 		this.trendSelector.addTrends(this.state.pendingTrends, true);
 		this.updateScore(this.trendSelector.getScore(), true);
+		this.faceChanger.resetFace(true);
 		this.state.level++;
 		await Promise.all(this.state.solvedCells.map(cell => cell.typingDone));
 		await Promise.all(this.state.solvedCells.map(cell => cell.solvedLoop.end()));
@@ -256,7 +257,7 @@ class Game {
 			: BoardCreator.createBoard(this.state.level);
 		if (board.cellCount < 4 || board.cellCount % 2 !== 0) {
 			console.error("Please provide an even cell count greater than or equal to 4.");
-			return null;
+			return;
 		}
 		return board;
 	};
@@ -331,6 +332,9 @@ class Game {
 		this.state.announceMilestone = crossed;
 		if (this.memory.saveProgress) localStorage.setItem('score', JSON.stringify(this.memory.score));
 	};
+	getPercentScore = function() {
+		return parseFloat((this.memory.score.num / this.memory.score.denominator * 100).toFixed(Config.scoreRounding));
+	}
 
 	removeLife = function () {
 		Graphics.lifeDisplay.removeLife(this.state.lives--);
@@ -511,7 +515,7 @@ async function init() {
 		}
 	} else game.memory.saveProgress = false;
 	game.initScore(game.trendSelector.getScore());
-	Graphics.resetToolTip(game, false);
+	Graphics.resetToolTip(game, true);
 	globalThis.game = game;
 	game.newGame(true);
 	window.addEventListener('resize', () => game.gridLayout.resizeGrid());

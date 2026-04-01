@@ -22,12 +22,12 @@ export const Config = {
 	],
 	messages: {
 		intro: ["I'm feeling lucky"],
-		victory: ["I'm not a robot", "reCAPTCHA'd", "Great!"],
+		victory: ["I'm not a robot", "Great!", "Amazing!", "Fantastic!"],
 		perfect: ['Perfect!', "I'm feeling lucky"],
 		nearmiss: ["Phew!", "Close!"],
 		failure: ["Aw, snap!", "That's an error.", "Please try again", "Only human!"],
 		gameover: ["Game over!"],
-		end: ["All trends found!", "OMG 100%!", "You ARE a robot!"],
+		end: ["OMG 100%!", "You ARE a robot!"],
 	},
 	glyphs: [
 		"images/download_arrow.png",

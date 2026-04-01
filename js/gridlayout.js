@@ -2,6 +2,8 @@ export function GridLayout(elements) {
 	const factors = [];
 	factors[4] = [2];
 	factors[8] = [2, 4];
+	factors[10] = [3, 4];
+	factors[14] = [3, 5];
 	factors[16] = [4];
 	factors[20] = [4, 5];
 	factors[24] = [3, 4, 6, 8];
@@ -10,11 +12,13 @@ export function GridLayout(elements) {
 	const grid = elements.grid;
 
 	this.update = async function (numCells) {
-		cellCount = numCells;
-		suitableFactors = [];
-
-		if (factors[numCells]) suitableFactors = factors[numCells];
+		if (factors[numCells]) {
+			suitableFactors = factors[numCells];
+			cellCount = suitableFactors[0] * suitableFactors[suitableFactors.length - 1];
+		}
 		else {
+			cellCount = numCells;
+			suitableFactors = [];
 			for (let i = 2; i < cellCount; i++) {
 				if (cellCount % i == 0) suitableFactors.push(i);
 			}

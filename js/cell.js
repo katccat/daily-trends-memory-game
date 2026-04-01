@@ -220,7 +220,7 @@ export class CellSolvedLoop {
 		const text = cells[0].getDisplayName();
 		const testElement = cells[0].createLabelBuffer();
 		const fontSize = fitFontSize(testElement, text, labelElements[0].offsetHeight);
-		const lines = getLines(testElement, text);
+		//const lines = getLines(testElement, text);
 		cells[0].destroyLabelBuffer();
 		labelElements.forEach(e => e.style.fontSize = fontSize);
 		bgElements.forEach(e => e.classList.add('fade-in'));
@@ -230,7 +230,7 @@ export class CellSolvedLoop {
 			
 			await Promise.all(bgElements.map(el => el.animate(animation.keyframes, animation.options).finished));
 			bgElements.forEach(el => el.classList.add('blur'));
-			await Graphics.typeText(lines, ...labelElements);
+			await Graphics.typeText(text, ...labelElements);
 			await new Promise(r => setTimeout(r, 1000));
 			typingResolver();
 		};
