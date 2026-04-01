@@ -47,8 +47,8 @@ export const Config = {
 	],
 	difficulty: {
 		easy: 0,
-		medium: 8,
-		hard: 14,
+		medium: 6,
+		hard: 12,
 	},
 	boardAnimationID: {
 		win: 'win',

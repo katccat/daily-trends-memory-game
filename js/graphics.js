@@ -11,6 +11,7 @@ export const Elements = {
 	splashText: document.getElementById('splash-text'),
 	splashContainer: document.getElementById('splash-container'),
 	faceDisplay: document.getElementById('face'),
+	faceOverlay: document.getElementById('glasses'),
 	continuePrompt: document.getElementById('continue-prompt'),
 	lives: [
 		{ // life 1 index 0
@@ -47,19 +48,21 @@ Graphics.faceChanger = function(game) {
 			'images/faces/5b.gif',
 		],
 		default: 'images/faces/1.png',
-		died1: 'images/faces/7b.png',
-		died2: 'images/faces/7b.png',
+		died: 'images/faces/7b.png',
 		diedImmediately: 'images/faces/7a.png',
 		special1: 'images/faces/special1.png',
 		special2: 'images/faces/special2.gif',
 		special3: 'images/faces/special3.gif',
 		trophy: 'images/faces/trophy.gif',
+		brokenGlasses: 'images/faces/break.gif',
 	};
 
 	let maxMistakes;
 	let doSequence2 = false;
+	let special = false
 	let dead = false;
 	const faceDisplay = Elements.faceDisplay;
+	const faceOverlay = Elements.faceOverlay;
 
 	this.setMaxMistakes = function (mistakes) {
 		maxMistakes = mistakes;
@@ -68,19 +71,17 @@ Graphics.faceChanger = function(game) {
 		if (dead) return;
 		if (this.game.state.remainingMistakes < 0) {
 			if (this.game.state.avoidableMistakes == 1) {
+				if (special) faceOverlay.src = faceImages.brokenGlasses;
 				faceDisplay.src = faceImages.diedImmediately;
 			}
-			else if (!doSequence2) {
-				faceDisplay.src = faceImages.died1;
-			}
 			else {
-				faceDisplay.src = faceImages.died2;
+				faceDisplay.src = faceImages.died;
 			}
 			dead = true;
 			return;
 		}
 		let length;
-		if (this.game.state.avoidableMistakes > 1 && !(faceDisplay.src == faceImages.default || faceDisplay.src == faceImages.special1 || faceDisplay.src == faceImages.special2)) {
+		if (this.game.state.avoidableMistakes > 1) {
 			doSequence2 = true;
 			length = faceImages.mistake2.length;
 		}
@@ -93,21 +94,28 @@ Graphics.faceChanger = function(game) {
 
 		if (doSequence2) faceDisplay.src = faceImages.mistake2[index];
 		else faceDisplay.src = faceImages.mistake1[index];
+		if (special) faceOverlay.src = faceImages.brokenGlasses;
+		special = false;
 	}
 	this.resetFace = function (victory = false) {
-		if (victory && game.getPercentScore() >= 100) {
-			faceDisplay.src = faceImages.trophy
-		}
-		else if (victory && game.getPercentScore() >= 90) {
-			faceDisplay.src = faceImages.special3;
-		}
-		else if (victory && game.getPercentScore() >= 75) {
-			faceDisplay.src = faceImages.special2;
-		}
-		else if (victory && game.getPercentScore() >= 50) {
-			faceDisplay.src = faceImages.special1;
+		const score = game.getPercentScore();
+		if (victory && score >= 50) {
+			special = true;
+			if (score >= 100) {
+				faceDisplay.src = faceImages.trophy
+			}
+			else if (score >= 90) {
+				faceDisplay.src = faceImages.special3;
+			}
+			else if (score >= 75) {
+				faceDisplay.src = faceImages.special2;
+			}
+			else if (score >= 50) {
+				faceDisplay.src = faceImages.special1;
+			}
 		}
 		else {
+			special = false;
 			faceDisplay.src = faceImages.default;
 		}
 		doSequence2 = false;
@@ -199,7 +207,13 @@ Graphics.PercentScorer = function (score) {
 		const displayStart = percentScore(lastScore);
 		const displayEnd = percentScore(newScore);
 		lastScore = newScore;
-		if (displayStart === displayEnd) return;
+		if (displayStart === displayEnd) {
+			scoreDisplay.classList.add('enlarge');
+			setTimeout(() => {
+				scoreDisplay.classList.remove('enlarge');
+			}, 1500);
+			return;
+		}
 		// Cancel any in-progress interpolation
 		if (intervalId) clearInterval(intervalId);
 

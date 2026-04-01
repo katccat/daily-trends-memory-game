@@ -30,13 +30,26 @@ body {
 	-webkit-tap-highlight-color: transparent;
 	align-content: center;
 	user-select: none;
-	background-image: url("../images/cloudbg.png");
+	
 	background-position: center;
 	background-size: cover;
 	background-color: var(--bg-color);
 }
-body.active {
-	background-image: none;
+body #background {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: -1;
+	background-position: center;
+	background-size: cover;
+	background-image: url("../images/output2.gif");
+	transition:
+		opacity 1s linear;
+}
+body.active #background {
+	opacity: 0;
 }
 body.dark {
 	background-color: rgb(43, 43, 43) !important;
@@ -110,7 +123,28 @@ body.dark {
 	justify-content: center;
 	gap: 2px;
 }
-
+.face-container {
+	height: 56px;
+	margin-bottom: -5px;
+	cursor: pointer;
+	position: relative;
+}
+.face-container img {
+	height: 56px;
+}
+.face-container #glasses {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	z-index: 1;
+	pointer-events: none;
+}
+img:not([src]) {
+	visibility: hidden;
+}
 .life-slot {
 	position: relative;
 	height: 24px;
@@ -124,13 +158,6 @@ body.dark {
 	left: 0;
 	height: 24px;
 	transition: 0.5s linear;
-}
-
-#tooltip-right img {
-	
-	height: 56px;
-	margin-bottom: -5px;
-	cursor: pointer;
 }
 
 #grid-container {

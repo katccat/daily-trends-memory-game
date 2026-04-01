@@ -59,11 +59,11 @@
 }
 
 .cell-card.unhide {
-	transform: translateZ(calc(var(--cell-thickness) * -1)) rotateX(-180deg);
+	transform: rotateX(-180deg);
 }
 
 .cell-card.scale.unhide {
-	transform: translateZ(calc(var(--cell-thickness) * -1)) rotateX(-180deg) scale(1.02);
+	transform: rotateX(-180deg) scale(1.02);
 }
 
 /* --- Card Front: Mask (face-down state) --- */

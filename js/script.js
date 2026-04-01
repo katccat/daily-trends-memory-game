@@ -210,6 +210,7 @@ class Game {
 		}
 	};
 	winGame = async function () {
+		document.body.classList.remove('active');
 		this.state.won = true;
 		this.state.coolDown = true;
 		if (this.board.giveLife) this.addLife();

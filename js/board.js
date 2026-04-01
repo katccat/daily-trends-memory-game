@@ -49,11 +49,13 @@ export class BoardCreator {
 		
 		const board = new Board(cellCount, category);
 		board.allowRecycleWords = allowRecycleWords;
-
-		if (cellCount > 16) {
+		if (cellCount > 12) {
+			board.additionalMistakes = 3;
+		}
+		else if (cellCount > 8) {
 			board.additionalMistakes = 2;
 		}
-		else if (level < BoardCreator.levels.normal) board.additionalMistakes = 1;
+		else if (cellCount > 4) board.additionalMistakes = 1;
 
 		if (cellCount >= BoardCreator.giveLifeThreshold) {
 			board.giveLife = true;
