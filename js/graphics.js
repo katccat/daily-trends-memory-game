@@ -53,7 +53,7 @@ Graphics.faceChanger = function(game) {
 		special1: 'images/faces/special1.png',
 		special2: 'images/faces/special2.gif',
 		special3: 'images/faces/special3.gif',
-		trophy: 'images/faces/trophy.gif',
+		trophy: 'images/faces/trophy_resized.gif',
 		brokenGlasses: 'images/faces/break.gif',
 	};
 
