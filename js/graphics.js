@@ -71,7 +71,7 @@ Graphics.faceChanger = function(game) {
 		if (dead) return;
 		if (this.game.state.remainingMistakes < 0) {
 			if (this.game.state.avoidableMistakes == 1) {
-				if (special) faceOverlay.src = faceImages.brokenGlasses;
+				if (special) faceOverlay.src = faceImages.brokenGlasses + '?t=' + Date.now();
 				faceDisplay.src = faceImages.diedImmediately;
 			}
 			else {
@@ -94,7 +94,7 @@ Graphics.faceChanger = function(game) {
 
 		if (doSequence2) faceDisplay.src = faceImages.mistake2[index];
 		else faceDisplay.src = faceImages.mistake1[index];
-		if (special) faceOverlay.src = faceImages.brokenGlasses;
+		if (special) faceOverlay.src = faceImages.brokenGlasses + '?t=' + Date.now();
 		special = false;
 	}
 	this.resetFace = function (victory = false) {
@@ -110,7 +110,7 @@ Graphics.faceChanger = function(game) {
 			else if (score >= 75) {
 				faceDisplay.src = faceImages.special2;
 			}
-			else if (score >= 50) {
+			else {
 				faceDisplay.src = faceImages.special1;
 			}
 		}

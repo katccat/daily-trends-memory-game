@@ -16,8 +16,8 @@ export class Board {
 export class BoardCreator {
 	static cellCounts = {
 		normal: {
-			easy: [8, 12, 16],
-			medium: [18, 20, 24],
+			easy: [8, 10, 12, 14],
+			medium: [16, 18, 20, 24],
 			hard: [30, 36],
 		},
 		phone: {
@@ -41,7 +41,13 @@ export class BoardCreator {
 					cellCounts.push(...availableCellCounts.hard);
 				}
 			}
-			cellCount = randomItem(cellCounts);
+			if (level === BoardCreator.previous.level) {
+				const maxCellCount = BoardCreator.previous.board.cellCount > 14 ? BoardCreator.previous.board.cellCount : 14;
+				do {
+					cellCount = randomItem(cellCounts);
+				} while (cellCount > maxCellCount);
+			}
+			else cellCount = randomItem(cellCounts);
 		}
 
 		category = Config.trendData.trends;
@@ -49,7 +55,7 @@ export class BoardCreator {
 		
 		const board = new Board(cellCount, category);
 		board.allowRecycleWords = allowRecycleWords;
-		if (cellCount > 12) {
+		if (cellCount > 14) {
 			board.additionalMistakes = 3;
 		}
 		else if (cellCount > 8) {
