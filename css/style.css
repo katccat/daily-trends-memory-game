@@ -175,13 +175,19 @@ img:not([src]) {
 	border: var(--gap) solid transparent;
 	aspect-ratio: 1 / 1;
 	gap: var(--gap);
-	display: grid;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
 	width: auto;
 	height: auto;
 	max-width: 100%;
 	max-height: 100%;
 	transition: background-color 0.3s linear;
 	z-index: 2;
+}
+#grid>.cell-wrapper {
+	flex: 0 0 calc((100% - (var(--columns) - 1) * var(--gap)) / var(--columns));
+	height: calc((100% - (var(--rows) - 1) * var(--gap)) / var(--rows));
 }
 
 #grid.active {

@@ -57,14 +57,14 @@ export const Config = {
 	animation: {
 		shake: {
 			keyframes: [
-				{ marginLeft: '0', offset: 0 },
-				{ marginLeft: '-10px', offset: 0.08 },
-				{ marginLeft: '10px', offset: 0.25 },
-				{ marginLeft: '-10px', offset: 0.41 },
-				{ marginLeft: '10px', offset: 0.58 },
-				{ marginLeft: '-5px', offset: 0.75 },
-				{ marginLeft: '5px', offset: 0.92 },
-				{ marginLeft: '0', offset: 1 },
+				{ transform: 'translateX(0)', offset: 0 },
+				{ transform: 'translateX(-10px)', offset: 0.08 },
+				{ transform: 'translateX(10px)', offset: 0.25 },
+				{ transform: 'translateX(-10px)', offset: 0.41 },
+				{ transform: 'translateX(10px)', offset: 0.58 },
+				{ transform: 'translateX(-5px)', offset: 0.75 },
+				{ transform: 'translateX(5px)', offset: 0.92 },
+				{ transform: 'translateX(0)', offset: 1 },
 			],
 			options: {
 				duration: 500,

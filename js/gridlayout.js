@@ -52,8 +52,8 @@ export function GridLayout(elements) {
 		const viewportAspectRatio = viewportWidth / viewportHeight;
 		const [columns, rows] = this.findBestDimensions(viewportWidth / viewportHeight);
 		const gridAspectRatio = columns / rows;
-		grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-		grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+		root.style.setProperty('--columns', columns);
+		root.style.setProperty('--rows', rows);
 		grid.style.aspectRatio = `${columns} / ${rows}`;
 
 		if (viewportAspectRatio > gridAspectRatio) {
