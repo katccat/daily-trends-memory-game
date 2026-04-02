@@ -11,3 +11,4 @@ google-key.txt
 *.pages
 .localized
 *.code-workspace
+manifest.json
