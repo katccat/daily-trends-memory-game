@@ -373,11 +373,8 @@ const TrendSelector = function (trendData, game) {
 			}
 		}
 	};
-	this.restoreValidated = function(saved) {
-		if (saved) validatedImages = new Set(saved.filter(url => {
-			// only keep validated URLs that still exist in current trend data
-			return Object.values(trends).some(t => t.url === url);
-		}));
+	this.restoreValidated = function (saved) {
+		if (saved) validatedImages = new Set(saved);
 	};
 	async function isImageValid(url) {
 		if (validatedImages.has(url)) return true;

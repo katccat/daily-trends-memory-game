@@ -76,8 +76,7 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-
-	background-color: rgb(237, 237, 237);
+	background-color: var(--cell-color);
 	background-size:contain;
 	background-position: center;
 
@@ -87,7 +86,7 @@
 }
 .cell-edge {
 	position: absolute;
-	background-color: rgb(213, 213, 213);
+	background-color: var(--cell-edge-color);
 	backface-visibility: hidden;
 }
 
@@ -152,7 +151,7 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	color: white;
+	color: var(--text-color);
 	background-color: rgba(0, 0, 0, 0.7);
 	opacity: 0;
 	box-shadow: -4px 0px 15px 0px rgba(0, 0, 0, 0.24); 
@@ -198,7 +197,7 @@
 	width: 100%;
 	height: 100%;
 	opacity: 0;
-	color: white;
+	color: var(--text-color);
 	pointer-events: none;
 	transition: opacity 0.8s linear;
 }

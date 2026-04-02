@@ -1,11 +1,25 @@
 :root {
-	--theme-blue: #4990e2;
+	--theme-blue: #4d91ff;
 	--global-padding: 8px;
 	--gap: 8px;
 	--bg-color: rgb(250, 250, 250);
+	--frame-color: white;
 	--cell-thickness: 14px;
+	--cell-color: rgb(237, 237, 237);
+	--cell-edge-color: rgb(213, 213, 213);
+	--text-color: white;
 }
-
+[data-theme="dark"] { 
+	--theme-blue: #003c9e;
+	--bg-color: #1b1d1e;
+	--frame-color: #181a1b;
+	--cell-color: #232526;
+	--cell-edge-color: #1b1d1e;
+	--text-color: white;
+}
+[data-theme="dark"] *:not(.cell-label-bg) {
+	box-shadow: none !important;
+}
 /* Typography */
 body {
 	font-family: "Google Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -48,11 +62,8 @@ body #background {
 	transition:
 		opacity 1s linear;
 }
-body.active #background {
+body.active #background, [data-theme="dark"] #background {
 	opacity: 0;
-}
-body.dark {
-	background-color: rgb(43, 43, 43) !important;
 }
 
 .fade-out {
@@ -75,8 +86,8 @@ body.dark {
 	width: 100%;
 	padding: 12px;
 	/*background: linear-gradient(to bottom, #65a7fc 0%, #4d91ff 50%, #4385ee 100%);*/
-	background-color: #4d91ff;
-	border: var(--gap) solid white;
+	background-color: var(--theme-blue);
+	border: var(--gap) solid var(--frame-color);
 	border-bottom: 0;
 	transition:
 		opacity 0.3s linear;
@@ -191,7 +202,7 @@ img:not([src]) {
 }
 
 #grid.active {
-	background-color: rgba(255, 255, 255, 1);
+	background-color: var(--frame-color);
 	box-shadow: 0px 10px 10px 0px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 #tooltip.active {
@@ -251,6 +262,10 @@ img:not([src]) {
 	display: inline-block;
 	text-align: center;
 	font-family: "Coral Pixels";
+}
+[data-theme="dark"] #splash-text {
+	font-family: "Tiny5";
+	color: white;
 }
 
 #splash-container.expand {
