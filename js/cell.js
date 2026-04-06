@@ -1,8 +1,4 @@
 import { Config } from './config.js';
-import { Graphics } from './graphics.js';
-import { getLines, isPhone } from './utils.js';
-import { awaitTransition } from './utils.js';
-import { fitFontSize } from './utils.js';
 
 export class Cell {
 	static State = {
@@ -11,7 +7,6 @@ export class Cell {
 		SOLVED: 'solved',
 		INACTIVE: 'inactive',
 	};
-
 	constructor(game) {
 		this.game = game;
 		this.state = Cell.State.INACTIVE;
@@ -23,56 +18,44 @@ export class Cell {
 		this.bespoke = false;
 		this.solvedLoop;
 		this.transitioning;
+		this.elements = {};
 
-		this.elements = {
-			parent: document.createElement('div'),
-			card: document.createElement('div'),
-			image: document.createElement('div'),
-			labelBg: document.createElement('div'),
-			label: document.createElement('div'),
-			labelBuffer: null,
-			number: document.createElement('div'),
-			front: document.createElement('div'),
-			edgeTop: document.createElement('div'),
-			edgeBottom: document.createElement('div'),
-			edgeLeft: document.createElement('div'),
-			edgeRight: document.createElement('div'),
-		};
 		this.build();
-		this.elements.parent.addEventListener('click', () => this.unhide());
 	}
 	build() {
-		this.elements.parent.className = 'cell-wrapper';
+		const el = (tag, className) => {
+			const node = document.createElement(tag);
+			if (className) node.className = className;
+			return node;
+		};
 
-		this.elements.card.className = 'cell-card';
-		this.elements.parent.appendChild(this.elements.card);
+		const front = this.elements.front = el('div', 'cell-front');
+		const number = this.elements.number = el('div', 'cell-number');
+		const label = this.elements.label = el('div', 'cell-label');
+		const labelBg = this.elements.labelBg = el('div', 'cell-label-bg');
+		const image1 = this.elements.image1 = el('div', 'cell-image');
+		const image2 = this.elements.image2 = el('div', 'cell-image');
+		const imgContainer = this.elements.imageContainer = el('div', 'cell-image-container');
+		const cellBack = el('div', 'cell-back');
+		const card = this.elements.card = el('div', 'cell-card');
+		const parent = this.elements.parent = el('div', 'cell-wrapper');
 
-		this.elements.image.className = 'cell-back';
-		this.elements.card.appendChild(this.elements.image);
+		labelBg.append(label, number);
 
-		this.elements.labelBg.className = 'cell-label-bg';
-		this.elements.image.appendChild(this.elements.labelBg);
+		this.elements.edge = {};
+		const edges = document.createDocumentFragment();
+		['top', 'bottom', 'left', 'right'].forEach(side => {
+			const element = el('div', `cell-edge cell-edge--${side}`);
+			edges.appendChild(element);
+			this.elements.edge[side] = element;
+		});
 
-		this.elements.label.className = 'cell-label';
-		this.elements.labelBg.appendChild(this.elements.label);
-
-		this.elements.number.className = 'cell-number';
-		this.elements.labelBg.appendChild(this.elements.number);
-
-		this.elements.front.className = 'cell-front';
-		this.elements.card.appendChild(this.elements.front);
-
-		this.elements.edgeTop.className = 'cell-edge cell-edge--top';
-		this.elements.card.appendChild(this.elements.edgeTop);
-
-		this.elements.edgeBottom.className = 'cell-edge cell-edge--bottom';
-		this.elements.card.appendChild(this.elements.edgeBottom);
-
-		this.elements.edgeLeft.className = 'cell-edge cell-edge--left';
-		this.elements.card.appendChild(this.elements.edgeLeft);
-
-		this.elements.edgeRight.className = 'cell-edge cell-edge--right';
-		this.elements.card.appendChild(this.elements.edgeRight);
+		imgContainer.append(image1, image2);
+		cellBack.append(imgContainer);
+		cellBack.append(labelBg);
+		card.append(cellBack, front, edges);
+		parent.appendChild(card);
+		parent.addEventListener('click', () => this.unhide());
 	}
 	getElement() {
 		return this.elements.parent;
@@ -104,11 +87,23 @@ export class Cell {
 	getDisplayName() {
 		return this.displayName;
 	}
-	activate(word, trendObject) {
+	async activate(word, trendObject) {
 		this.id = word;
 		this.displayName = trendObject.nickname || word.toLowerCase();
-		const image = Array.isArray(trendObject.url) ? trendObject.url[0] : trendObject.url;
-		this.elements.image.style.backgroundImage = `url(${image})`;
+		const images = Array.isArray(trendObject.url) ? trendObject.url : [trendObject.url];
+		let firstImageFilled = false;
+		for (const img of images) {
+			const imageValid = (await game.imageValidator.isValid(img));
+			if (!imageValid) continue;
+			if (!firstImageFilled) {
+				this.elements.image1.style.backgroundImage = `url(${img})`;
+				firstImageFilled = true;
+			}
+			else {
+				this.image2 = true;
+				this.elements.image2.style.backgroundImage = `url(${img})`;
+			}
+		}
 		if (trendObject.views) {
 			this.views = trendObject.views;
 			this.elements.number.textContent = trendObject.views;
@@ -134,10 +129,12 @@ export class Cell {
 	}
 	async shake() {
 		this.elements.card.classList.remove('scale');
-		const animation = this.elements.parent.animate(Config.animation.shake.keyframes, Config.animation.shake.options);
+		const shake = Config.animation.shake;
+		const animation = this.elements.parent.animate(shake.keyframes, shake.options);
+		const duration = shake.options.duration;
 		this.transitioning = Promise.all([
 			animation.finished,
-			new Promise(resolve => setTimeout(resolve, 500))
+			new Promise(resolve => setTimeout(resolve, duration))
 		]);
 	}
 	async unhide() {
@@ -148,7 +145,6 @@ export class Cell {
 		this.elements.card.classList.add('scale');
 		this.elements.card.classList.add('unhide');
 		this.transitioning = Promise.all([
-			awaitTransition(this.elements.card),
 			new Promise(resolve => setTimeout(resolve, 500))
 		]);
 	}
@@ -171,89 +167,65 @@ export class Cell {
 	setBackColor(color) {
 		this.elements.labelBg.style.backgroundColor = color;
 	}
-}
-export class CellSolvedLoop {
-	constructor(game, ...cells) {
-		let typingResolver, endResolver;
-		const typingDone = new Promise(r => typingResolver = r);
-		const endPromise = new Promise(r => endResolver = r);
-		const specialAnimation = cells[0].bespoke;
-		let ended = false;
-		let stopped = false;
-		
-		this.end = async function () {
-			if (ended) return;
-			ended = true;
-			if (specialAnimation) bgElements.forEach(e => setBespoke(e));
-			viewsElements.forEach(e => e.classList.add('fade-in'));
-			labelElements.forEach(e => e.classList.add('fade-out'));
-			endResolver();
-			(async () => {
-				while (!stopped) {
-					await new Promise(r => setTimeout(r, 4000));
-					if (stopped) break;
-					viewsElements.forEach(e => e.classList.remove('fade-in'));
-					labelElements.forEach(e => e.classList.remove('fade-out'));
-					await new Promise(r => setTimeout(r, 4000));
-					if (stopped) break;
-					viewsElements.forEach(e => e.classList.add('fade-in'));
-					labelElements.forEach(e => e.classList.add('fade-out'));
-				}
-			})();
-		};
-		this.stop = function() {
-			stopped = true;
+	slideImage() {
+		if (!this.image2) return;
+		this.elements.imageContainer.classList.add('show-second');
+	}
+
+	reverseImages() {
+		if (!this.image2) return;
+		const container = this.elements.imageContainer;
+		const img1 = this.elements.image1.style.backgroundImage;
+		const img2 = this.elements.image2.style.backgroundImage;
+
+		// Copy image2's source into image1
+		this.elements.image1.style.backgroundImage = img2;
+
+		// Disable transition, snap back to start position
+		container.style.transition = 'none';
+		container.classList.remove('show-second');
+		this.elements.image2.style.backgroundImage = img1;
+
+		// Force reflow so the browser registers the change before re-enabling transition
+		container.offsetHeight;
+
+		container.style.transition = '';
+	}
+	setBespoke() {
+		const element = this.elements.labelBg;
+		const current = getComputedStyle(element).backgroundColor;
+		const colors = [...Config.darkColors];
+		let currentIndex = 0;
+		for (let i = 0; i < colors.length; i++) {
+			if (colors[i] === current) currentIndex = i;
 		}
-
-		const labelElements = [];
-		const viewsElements = [];
-		const bgElements = [];
-		
-		cells.forEach(cell => {
-			cell.typingDone = typingDone;
-			cell.endPromise = endPromise;
-			labelElements.push(cell.elements.label);
-			viewsElements.push(cell.elements.number);
-			bgElements.push(cell.elements.labelBg);
+		const orderedColors = colors.splice(currentIndex);
+		orderedColors.push(...colors);
+		element.animate([
+			{ backgroundColor: orderedColors[0] },
+			{ backgroundColor: orderedColors[1] },
+			{ backgroundColor: orderedColors[2] },
+			{ backgroundColor: orderedColors[3] },
+			{ backgroundColor: orderedColors[0] },
+		], {
+			duration: 8000,
+			iterations: Infinity,
+			easing: 'linear',
 		});
-
-		const text = cells[0].getDisplayName();
-		const testElement = cells[0].createLabelBuffer();
-		const fontSize = fitFontSize(testElement, text, labelElements[0].offsetHeight);
-		//const lines = getLines(testElement, text);
-		cells[0].destroyLabelBuffer();
-		labelElements.forEach(e => e.style.fontSize = fontSize);
-		bgElements.forEach(e => e.classList.add('fade-in'));
+	}
+	// In Cell class:
+	showBackground() {
 		const animation = Config.animation.slide.right;
-		
-		this.start = async () => {
-			
-			await Promise.all(bgElements.map(el => el.animate(animation.keyframes, animation.options).finished));
-			bgElements.forEach(el => el.classList.add('blur'));
-			await Graphics.typeText(text, ...labelElements);
-			await new Promise(r => setTimeout(r, 1000));
-			typingResolver();
-		};
+		const anim = this.elements.labelBg.animate(animation.keyframes, animation.options);
+		this.elements.labelBg.classList.add('fade-in');
+		return anim.finished;
 	}
-}
-const setBespoke = function(element) {
-	const current = getComputedStyle(element).backgroundColor;
-	const colors = [...Config.darkColors];
-	let currentIndex = 0;
-	for (let i = 0; i < colors.length; i ++) {
-		if (colors[i] === current) currentIndex = i;
+	showViews() {
+		this.elements.number.classList.add('fade-in');
+		this.elements.label.classList.add('fade-out');
 	}
-	const orderedColors = colors.splice(currentIndex);
-	orderedColors.push(...colors);
-	element.animate([
-		{ backgroundColor: orderedColors[0] },
-		{ backgroundColor: orderedColors[1] },
-		{ backgroundColor: orderedColors[2] },
-		{ backgroundColor: orderedColors[3] },
-		{ backgroundColor: orderedColors[0] },
-	], {
-		duration: 8000,
-		iterations: Infinity,
-		easing: 'linear',
-	});
+	hideViews() {
+		this.elements.number.classList.remove('fade-in');
+		this.elements.label.classList.remove('fade-out');
+	}
 }

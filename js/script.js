@@ -2,11 +2,11 @@ import { Config } from './config.js';
 import { Elements } from './graphics.js';
 import { Graphics } from './graphics.js';
 import { GridLayout } from './gridlayout.js';
-import { Cell, CellSolvedLoop } from './cell.js';
+import { Cell } from './cell.js';
+import { CellSolvedLoop } from './CellSolvedLoop.js';
 import { Board } from './board.js';
 import { BoardCreator } from './board.js';
-import { randomItem, validateImage } from './utils.js';
-import { waitForFlag } from './utils.js';
+import { ImageValidator, randomItem, waitForFlag } from './utils.js';
 
 class Game {
 	constructor(boards) {
@@ -152,7 +152,7 @@ class Game {
 			if (cell1.getName() === cell2.getName()) {
 				cell1.solve();
 				cell2.solve();
-				const solvedLoop = new CellSolvedLoop(game, cell1, cell2);
+				const solvedLoop = new CellSolvedLoop(cell1, cell2);
 				cell1.solvedLoop = solvedLoop;
 				cell2.solvedLoop = solvedLoop;
 				solvedLoop.start();
@@ -193,7 +193,7 @@ class Game {
 					return;
 				}
 				this.state.cellsFading = true;
-				const fadeDelay = new Promise(resolve => setTimeout(resolve, Config.fadeDelay));
+				const fadeDelay = new Promise(resolve => setTimeout(resolve, Config.delay.fade));
 				const interrupt = waitForFlag(() => this.state.cellsFading, false);
 				promises.push(fadeDelay, interrupt);
 				await Promise.race(promises);
@@ -222,16 +222,21 @@ class Game {
 		await Promise.all(this.state.solvedCells.map(cell => cell.typingDone));
 		await Promise.all(this.state.solvedCells.map(cell => cell.solvedLoop.end()));
 		this.state.awaitPlayer = true;
-		await new Promise(r => setTimeout(r, 800));
-		if (this.state.awaitPlayer) Graphics.showPrompt();
-		//this.newGame(true);
+		const showDelay = Config.delay.showContinuePrompt;
+		await new Promise(r => setTimeout(r, showDelay));
+		if (this.state.awaitPlayer) {
+			const fadeDelay = Config.delay.changeCellLabel - showDelay;
+			Graphics.showPrompt();
+			await new Promise(r => setTimeout(r, fadeDelay));
+			Graphics.hidePrompt();
+		}
 	};
 	loseGame = async function() {
 		this.state.lost = true;
 		this.state.coolDown = true;
 		this.removeLife();
 		this.trendSelector.addTrends(this.state.pendingTrends, false);
-		await new Promise(resolve => setTimeout(resolve, 1000));
+		await new Promise(resolve => setTimeout(resolve, Config.delay.loseTransition));
 		if (this.state.lives <= 0) {
 			this.restartGame();
 		}
@@ -351,7 +356,6 @@ const TrendSelector = function (trendData, game) {
 		deferred: new Set(),
 		unusable: new Set(),
 	};
-	let validatedImages = new Set();
 	this.restoreKeys = function (restoredKeys) {
 		if (restoredKeys) {
 			keys.unused = new Set((restoredKeys.unused ?? []).filter(k => trends[k]));
@@ -373,16 +377,6 @@ const TrendSelector = function (trendData, game) {
 			}
 		}
 	};
-	this.restoreValidated = function (saved) {
-		if (saved) validatedImages = new Set(saved);
-	};
-	async function isImageValid(url) {
-		if (validatedImages.has(url)) return true;
-		const valid = await validateImage(url);
-		if (valid) validatedImages.add(url);
-		return valid;
-	}
-
 	function moveKey(key, from, to) {
 		if (!from.has(key)) return false;
 		from.delete(key);
@@ -417,6 +411,11 @@ const TrendSelector = function (trendData, game) {
 		}
 		if (game.memory.saveProgress) this.saveData();
 	};
+	this.removeTrends = function (amount) {
+		const usedKeys = [...keys.used];
+		amount = Math.min(amount, usedKeys.length);
+		//for (let i = 0)
+	}
 	this.getRandomTrendKeys = async function(amount) {
 		const MAX_TRIES = 10;
 		const usedImages = [];
@@ -430,24 +429,28 @@ const TrendSelector = function (trendData, game) {
 			let usedTrend = false;
 
 			let tries = 0;
-			let imageValid = false;
-			while (!imageValid && tries < MAX_TRIES) {
+			let validImage = false;
+			while (!validImage && tries < MAX_TRIES) {
 				tries++;
-
 				let pool;
 				if (unusedKeys.length > 0) pool = unusedKeys;
 				else if (deferredKeys.length > 0) pool = deferredKeys;
 				else { pool = usedKeys; usedTrend = true; }
 				if (pool.length === 0) break;
+
 				const index = Math.floor(Math.random() * pool.length);
 				key = pool.splice(index, 1)[0];
-				const image = Array.isArray(trends[key]?.url) ? trends[key].url[0] : trends[key]?.url;
-				if (usedImages.includes(image)) continue;
-				imageValid = (await isImageValid(image));
-				if (!imageValid) markUnusable(key);
-				usedImages.push(image);	
+
+				const images = Array.isArray(trends[key]?.url) ? trends[key].url : [trends[key]?.url];
+				if (images.some(img => usedImages.includes(img))) continue;
+				for (const img of images) {
+					const imageValid = await game.imageValidator.isValid(img);
+					if (imageValid) validImage = true;
+				}
+				if (!validImage) markUnusable(key);
+				usedImages.push(...images);	
 			}
-			if (!imageValid) {
+			if (!validImage) {
 				console.error("No word with picture found.");
 				continue;
 			}
@@ -466,8 +469,6 @@ const TrendSelector = function (trendData, game) {
 			unusable: [...keys.unusable],
 		};
 		localStorage.setItem('trendKeys', JSON.stringify(data));
-		localStorage.setItem('validatedImages', JSON.stringify([...validatedImages]));
-		localStorage.setItem('fetchedDate', fetchedDate);
 	};
 };
 
@@ -480,6 +481,7 @@ async function init() {
 	const game = new Game(boards);
 	game.gridLayout = new GridLayout(Elements);
 	game.faceChanger = new Graphics.faceChanger(game);
+	game.imageValidator = new ImageValidator();
 	game.trendSelector = new TrendSelector(Config.trendData, game);
 	game.percentScorer = new Graphics.PercentScorer(game.memory.score);
 	game.colorSequencerDark = new Graphics.colorSequencer(Config.darkColors);
@@ -495,12 +497,12 @@ async function init() {
 		game.memory.saveProgress = true;
 		if (dateMatch) {
 			try {
-				const savedKeys = JSON.parse(localStorage.getItem('trendKeys'));
-				game.trendSelector.restoreKeys(savedKeys);
+				const saved = JSON.parse(localStorage.getItem('trendKeys'));
+				game.trendSelector.restoreKeys(saved);
 			} catch {}
 			try {
-				const saved = JSON.parse(localStorage.getItem('validatedImages'));
-				if (saved) game.trendSelector.restoreValidated(saved);
+				const saved = JSON.parse(localStorage.getItem('images'));
+				if (saved) game.imageValidator.restore(saved);
 			} catch {}
 			try {
 				const saved = JSON.parse(localStorage.getItem('score'));
@@ -508,10 +510,14 @@ async function init() {
 			} catch {}
 		} else {
 			localStorage.removeItem('trendKeys');
-			localStorage.removeItem('fetchedDate');
+			localStorage.removeItem('images');
 			localStorage.removeItem('score');
 		}
-	} else game.memory.saveProgress = false;
+		localStorage.setItem('fetchedDate', newDate);
+	} else {
+		game.memory.saveProgress = false;
+		localStorage.removeItem('fetchedDate');
+	};
 	game.initScore(game.trendSelector.getScore());
 	Graphics.resetToolTip(game, true);
 	globalThis.game = game;

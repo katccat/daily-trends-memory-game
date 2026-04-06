@@ -1,5 +1,4 @@
 import { Config } from "./config.js";
-import { getLines } from "./utils.js";
 
 export const Elements = {
 	grid: document.getElementById('grid'),
@@ -30,7 +29,7 @@ export const Elements = {
 			dead: document.getElementById('life3-dead'),
 		},
 	],
-}
+};
 export class Graphics {};
 
 Graphics.faceChanger = function(game) {

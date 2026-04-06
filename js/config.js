@@ -1,6 +1,13 @@
 import { Elements } from './graphics.js';
 export const Config = {
-	fadeDelay: 700,
+	delay: {
+		fade: 700,
+		showContinuePrompt: 800,
+		changeCellLabel: 4000,
+		changeCellImage: 5000,
+		resolveTyping: 1000,
+		loseTransition: 1000,
+	},
 	trendData: {},
 	funColorChance: 0,
 	funGlyphChance: 0.1,
@@ -50,10 +57,6 @@ export const Config = {
 		medium: 6,
 		hard: 12,
 	},
-	boardAnimationID: {
-		win: 'win',
-		lose: 'lose',
-	},
 	animation: {
 		shake: {
 			keyframes: [
@@ -80,13 +83,6 @@ export const Config = {
 				],
 				options: { duration: 700, easing: 'ease-out', fill: 'forwards' },
 			},
-			/*left: {
-				keyframes: [
-					{ transform: 'translateX(-100%)', offset: 0 },
-					{ transform: 'translateX(0)', offset: 1 },
-				],
-				options: { duration: 700, easing: 'ease-out', fill: 'forwards' },
-			},*/
 		},
 	}
 };

@@ -2,22 +2,50 @@ export function randomItem(list) {
 	return list[Math.floor(Math.random() * list.length)];
 }
 
-export async function validateImage(url) {
-	if (!url) return false;
-	return new Promise((resolve) => {
-		const img = new Image();
-		img.src = url;
-		img.onload = () => { 
-			resolve(true); 
-			cleanup(); 
-		};
-		img.onerror = () => { resolve(false); cleanup(); };
-		function cleanup() {
-			img.onload = null;
-			img.onerror = null;
+export const ImageValidator = function () {
+	let validatedImages = new Set();
+	let invalidatedImages = new Set();
+
+	const validateImage = async function(url) {
+		if (!url) return false;
+		return new Promise((resolve) => {
+			const img = new Image();
+			img.src = url;
+			img.onload = () => {
+				resolve(true);
+				cleanup();
+			};
+			img.onerror = () => { resolve(false); cleanup(); };
+			function cleanup() {
+				img.onload = null;
+				img.onerror = null;
+			}
+		});
+	}
+
+	this.restore = function (saved) {
+		if (saved) {
+			validatedImages = new Set(saved.valid);
+			invalidatedImages = new Set(saved.invalid);
 		}
-	});
-}
+	};
+	this.isValid = async function (url) {
+		if (invalidatedImages.has(url)) return false;
+		if (validatedImages.has(url)) return true;
+		const valid = await validateImage(url);
+		if (valid) validatedImages.add(url);
+		else invalidatedImages.add(url);
+		this.saveData();
+		return valid;
+	};
+	this.saveData = function() {
+		const data = {
+			valid: [...validatedImages],
+			invalid: [...invalidatedImages],
+		};
+		localStorage.setItem('images', JSON.stringify(data));
+	}
+};
 
 export function waitForFlag(flagRef, state) {
 	return new Promise(resolve => {
@@ -35,42 +63,6 @@ export function waitForFlag(flagRef, state) {
 export function isPhone() {
 	const phoneQuery = window.matchMedia('(max-width: 600px)');
 	return phoneQuery.matches;
-}
-export async function awaitTransition(element) {
-	const duration = parseFloat(getComputedStyle(element).transitionDuration) * 1000;
-	if (!duration) return;
-	await new Promise(resolve => {
-		element.addEventListener('transitionend', resolve, { once: true });
-	});
-}
-export function getLines(element, text) {
-	const oldText = element.textContent
-	const words = text.split(/(?<=[-–—\s])/);
-	const lines = [];
-	let currentLine = '';
-
-	element.textContent = 'a'; // so we're not starting off with a height of zero and guaranteeing a line break
-	let baselineHeight = element.offsetHeight;
-
-	for (const word of words) {
-		const test = currentLine ? currentLine + word : word;
-		element.textContent = test;
-
-		if (element.offsetHeight > baselineHeight && currentLine !== '') {
-			lines.push(currentLine);
-			currentLine = word;
-			element.textContent = currentLine;
-			baselineHeight = element.offsetHeight; // recalibrate if this word is itself oversized
-		}
-		else {
-			currentLine = test;
-			baselineHeight = element.offsetHeight; // track current height as new baseline
-		}
-	}
-
-	if (currentLine) lines.push(currentLine);
-	element.textContent = oldText;
-	return lines;
 }
 export function fitFontSize(element, text, maxHeight) {
 	let size = parseFloat(getComputedStyle(element).fontSize);

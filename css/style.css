@@ -4,7 +4,7 @@
 	--gap: 8px;
 	--bg-color: rgb(250, 250, 250);
 	--frame-color: white;
-	--cell-thickness: 14px;
+	--cell-thickness: 30px;
 	--cell-color: rgb(237, 237, 237);
 	--cell-edge-color: rgb(213, 213, 213);
 	--text-color: white;
@@ -58,12 +58,12 @@ body #background {
 	z-index: -1;
 	background-position: center;
 	background-size: cover;
-	background-image: url("../images/output2.gif");
+	/* background-image: url("../images/output2.gif");
 	transition:
-		opacity 1s linear;
+		opacity 1s linear; */
 }
 body.active #background, [data-theme="dark"] #background {
-	opacity: 0;
+	/* opacity: 0; */
 }
 
 .fade-out {
@@ -216,7 +216,7 @@ img:not([src]) {
 	transform: translate(-50%, -50%);
 	text-align: center;
 	opacity: 0;
-	will-change: transform, opacity;
+	will-change: opacity;
 	pointer-events: none;
 	font-family: "Tiny5";
 	font-size: min(18vw, 7rem);
@@ -224,7 +224,6 @@ img:not([src]) {
 	line-height: 120%;
 	text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.25);
 	transition: 
-		transform 1s,
 		opacity 0.5s linear;
 }
 #continue-prompt.fade-in {
