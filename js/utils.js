@@ -9,6 +9,17 @@ export const ImageValidator = function () {
 	const validateImage = async function (url) {
 		if (!url) return false;
 
+		// Try a HEAD request first to catch explicit 404s
+		try {
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 1000);
+			const response = await fetch(url, { method: "HEAD", signal: controller.signal });
+			clearTimeout(timeoutId);
+			if (response.status === 404) return false;
+		} catch {
+			// CORS or network error — fall through to img fallback
+		}
+
 		return new Promise((resolve) => {
 			const img = new Image();
 			let settled = false;
@@ -25,8 +36,6 @@ export const ImageValidator = function () {
 				resolve(result);
 			}
 
-			// Poll for naturalWidth — becomes non-zero as soon as the first
-			// few bytes are decoded, well before onload fires
 			pollId = setInterval(() => {
 				if (img.naturalWidth > 0) settle(true);
 			}, 50);

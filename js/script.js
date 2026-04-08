@@ -484,7 +484,7 @@ const TrendSelector = function (trendData, game) {
 				const validUrls = validationResults.filter(r => r.isValid).map(r => r.url);
 
 				// 4. Update the actual trendData reference to remove broken links permanently
-				trendObject.url = Array.isArray(trendObject.url) ? validUrls : validUrls[0];
+				trendObject.url = validUrls;
 
 				if ((validUrls.length > 0 && !game.memory.challengeMode) || (validUrls.length >= 2)) {
 					validKeyFound = true;
@@ -504,7 +504,7 @@ const TrendSelector = function (trendData, game) {
 		return randomTrendKeys;
 	};
 	this.getScore = function() {
-		return { num: keys.used.size, denominator: trendData.count - keys.unusable.size};
+		return { num: keys.used.size, denominator: Object.keys(trends).length - keys.unusable.size};
 	};
 	this.saveData = function () {
 		const data = {
@@ -572,7 +572,7 @@ async function init() {
 	Elements.faceDisplay.addEventListener('click', () => {
 		game.toggleChallengeMode(!game.memory.challengeMode);
 	});
-	// console.log(await game.imageValidator.isValid('https://s.yimg.com/ny/api/res/1.2/B.N2dC0xVmBTeIOn0vYJSw--/YXBwaWQ9aGlnaGxhbmRlcjt3PTk2MDtoPTUzOTtjZj13ZWJw/https://media.zenfs.com/en/wrestling_inc_articles_983/bceb74ebdbcd2e4070baeaa9f5fc68f8', true));
+	// console.log(await game.imageValidator.isValid('https://ts4.mm.bing.net/th?id=OIP.J0y55uufKnHF7tkW56YCCwHaEH&pid=15.1', true));
 }
 init();
 // document.addEventListener('click', () => {
