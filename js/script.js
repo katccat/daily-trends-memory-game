@@ -236,8 +236,8 @@ class Game {
 		const showDelay = Config.delay.showContinuePrompt;
 		await new Promise(r => setTimeout(r, showDelay));
 		if (this.state.awaitPlayer) {
-			const fadeDelay = Config.delay.changeCellLabel - showDelay;
 			Graphics.showPrompt();
+			const fadeDelay = Config.delay.changeCellLabel - showDelay;
 			await new Promise(r => setTimeout(r, fadeDelay));
 			Graphics.hidePrompt();
 		}
@@ -344,11 +344,14 @@ class Game {
 	updateScore = async function(score, animate) {
 		const prev = this.memory.score.num;
 		this.memory.score = score;
+
+		if (this.memory.score.num >= this.memory.score.denominator) {
+			this.memory.score.won = true;
+		}
 		if (animate) {
 			await game.percentScorer.interpolateScore(game.memory.score);
 			let crossed = false;
-			if (this.memory.score.num >= this.memory.score.denominator) {
-				this.memory.score.won = true;
+			if (this.memory.score.won) {
 				crossed = prev < this.memory.score.num;
 			}
 			else crossed = Config.milestones.find(m => prev < m && this.memory.score.num >= m);
@@ -535,7 +538,6 @@ async function init() {
 	const newDate = Config.trendData.fetchedDate;
 	const dateMatch = newDate && (localDate === newDate);
 	
-	let restoredScore = 0;
 	if (newDate) {
 		game.memory.saveProgress = true;
 		if (dateMatch) {
@@ -549,7 +551,7 @@ async function init() {
 			} catch {}
 			try {
 				const saved = JSON.parse(localStorage.getItem('score'));
-				if (saved) restoredScore = saved.num;
+				// if (saved) game.memory.score.won = !!saved.won;
 			} catch {}
 		} else {
 			localStorage.removeItem('trendKeys');
@@ -570,7 +572,7 @@ async function init() {
 	Elements.faceDisplay.addEventListener('click', () => {
 		game.toggleChallengeMode(!game.memory.challengeMode);
 	});
-	console.log(await game.imageValidator.isValid('https://lh3.googleusercontent.com/9jZIYreatcahFp0f0fmxhSHd4Wee6YBatNXjiYH3MYyodXd0bK8bCbAJemlJxzqvjJFIDtPkq9qq=w640-h360-p-rw-ns-nd', true));
+	// console.log(await game.imageValidator.isValid('https://s.yimg.com/ny/api/res/1.2/B.N2dC0xVmBTeIOn0vYJSw--/YXBwaWQ9aGlnaGxhbmRlcjt3PTk2MDtoPTUzOTtjZj13ZWJw/https://media.zenfs.com/en/wrestling_inc_articles_983/bceb74ebdbcd2e4070baeaa9f5fc68f8', true));
 }
 init();
 // document.addEventListener('click', () => {

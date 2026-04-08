@@ -5,7 +5,7 @@ export const Config = {
 	FALLBACK: 'https://backend.clayrobot.net/memorygame/fallback',
 	delay: {
 		fade: 700,
-		showContinuePrompt: 500,
+		showContinuePrompt: 0,
 		changeCellLabel: 4000,
 		changeCellImage: 1000,
 		resolveTyping: 1000,
