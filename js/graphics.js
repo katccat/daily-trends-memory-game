@@ -125,10 +125,9 @@ Graphics.faceChanger = function(game) {
 }
 Graphics.splashText = async function (text) {
 	const splashContainer = Elements.splashContainer;
-	Elements.splashText.textContent = text;
-	const animation = Config.animation.splash2;
-	const anim = splashContainer.animate(animation.keyframes, animation.options);
-	return anim.finished;
+	Elements.splashContainer.classList.add('fade-in');
+	await this.typeText(text, 90, Elements.splashText);
+	Elements.splashContainer.classList.remove('fade-in');
 };
 Graphics.flashMessage = async function (text) {
 	Elements.messageText.textContent = text;
@@ -258,8 +257,7 @@ Graphics.colorSequencer = function(sequence) {
 		return color;
 	}
 }
-Graphics.typeText = async function (text, ...elements) {
-	const delayMs = 90;
+Graphics.typeText = async function (text, delayMs, ...elements) {
 	elements.forEach(element => {
 		element.innerHTML = '';
 		for (const char of text) {

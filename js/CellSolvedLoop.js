@@ -19,7 +19,7 @@ export function CellLoopScheduler() {
 			let success = true;
 			while (playing) {
 				if (success) {
-					const randomDelay = Math.random() * 3000;
+					const randomDelay = Math.random() * 2000;
 					await new Promise(r => setTimeout(r, delay + randomDelay))
 				};
 				if (!playing || cellLoops.length === 0) {
@@ -89,7 +89,7 @@ export class CellSolvedLoop {
 		}
 		this.start = async function () {
 			await Promise.all(cells.map(cell => cell.showBackground()));
-			await Graphics.typeText(text, ...labelElements);
+			await Graphics.typeText(text, 90, ...labelElements);
 			await new Promise(r => setTimeout(r, Config.delay.resolveTyping));
 			typingResolver();
 		};

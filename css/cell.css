@@ -70,6 +70,8 @@
 .cell-front {
 	font-family: "Google Sans";
 	font-size: 20cqh;
+	padding: 5cqi;
+	text-align: center;
 	display: flex;
     align-items: center;
     justify-content: center;
@@ -202,7 +204,6 @@
 	position: fixed;
 	top: 0;
 	left: 0;
-	padding: 10px;
 	word-break: break-word;
 	overflow-wrap: break-word;
 
@@ -212,7 +213,6 @@
 	background-color: black;
 }
 .cell-number {
-	padding: 10px;
 	/* text-shadow: 2px 1px 6px rgba(0, 0, 0, 0.25); */
 	font-family: "Google Sans";
 	font-size: 30cqh;

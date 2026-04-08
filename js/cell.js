@@ -91,15 +91,15 @@ export class Cell {
 		const images = Array.isArray(trendObject.url) ? trendObject.url : [trendObject.url];
 		let firstImageFilled = false;
 		for (const img of images) {
-			const imageValid = (await game.imageValidator.isValid(img));
+			const imageValid = (await this.game.imageValidator.isValid(img));
 			if (!imageValid) continue;
 			if (!firstImageFilled) {
-				this.elements.image1.style.backgroundImage = `url(${img})`;
+				this.elements.image1.style.backgroundImage = `url("${img}")`;
 				firstImageFilled = true;
 			}
 			else {
 				this.image2 = true;
-				this.elements.image2.style.backgroundImage = `url(${img})`;
+				this.elements.image2.style.backgroundImage = `url("${img}")`;
 			}
 		}
 		if (trendObject.views) {

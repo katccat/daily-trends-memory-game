@@ -1,10 +1,13 @@
 import { Elements } from './graphics.js';
+import { randomItem, shuffle } from './utils.js';
 export const Config = {
+	BACKEND: 'https://backend.clayrobot.net/memorygame',
+	FALLBACK: 'https://backend.clayrobot.net/memorygame/fallback',
 	delay: {
 		fade: 700,
 		showContinuePrompt: 500,
 		changeCellLabel: 4000,
-		changeCellImage: 1500,
+		changeCellImage: 1000,
 		resolveTyping: 1000,
 		loseTransition: 1000,
 	},
@@ -32,7 +35,7 @@ export const Config = {
 	messages: {
 		intro: ["I'm feeling lucky"],
 		victory: ["I'm not a robot.", "Great!", "Amazing!", "Fantastic!"],
-		perfect: ['Perfect!', "I'm feeling lucky!"],
+		perfect: ['Perfect!', "I'm feeling lucky"],
 		nearmiss: ["Phew!", "Close!"],
 		failure: ["Aw, snap!", "That's an error.", "Please try again.", "Only human!"],
 		gameover: ["Game over!"],
@@ -49,10 +52,31 @@ export const Config = {
 		"images/contact.png",
 	],
 	introMessage: [
-		"I'm",
-		"not",
-		"a",
-		"robot",
+		{
+			words: [["I'm", "not", "a", "robot"]],
+			shuffle: false,
+		},
+		{
+			words: [
+				["tap", "to", "find", "matches"], 
+				["tap", "squares", "to", "match"], 
+			],
+			shuffle: false,
+		},
+		{
+			words: [["hello", "hola", "你好", "привет", "bonjour", "olá", "ciao", "hallo", "안녕", "مرحبًا"]],
+			shuffle: true,
+		},
+		{
+			words: [["news", "sports", "earth", "now", "search", "results", "trends", "top", "media", "people"]],
+			shuffle: true,
+		},
+		{
+			words: [
+				["clay", "robot", "dot", "net"],
+			],
+			shuffle: false,
+		},
 	],
 	difficulty: {
 		easy: 0,
@@ -107,7 +131,7 @@ export const Config = {
 				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0, offset: 1 },
 			],
 			options: {
-				duration: 1700,
+				duration: 2000,
 				iterations: 1,
 				easing: 'ease-out',
 			}
@@ -115,10 +139,10 @@ export const Config = {
 		splash3: {
 			keyframes: [
 				{ transform: 'translate(-50%, -50%) scale(0.1)', opacity: 1, offset: 0 },
-				{ transform: 'translate(-50%, -50%) scale(1.8)', opacity: 0, offset: 1 },
+				{ transform: 'translate(-50%, -50%) scale(1.4)', opacity: 0, offset: 1 },
 			],
 			options: {
-				duration: 1600,
+				duration: 2000,
 				iterations: 1,
 				// easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
 				easing: 'ease-out',
@@ -130,17 +154,17 @@ export const Config = {
 const IS_DEV = 
 	window.location.hostname !== 'clayrobot.net' &&
 	window.location.hostname !== 'www.clayrobot.net' &&
-	window.location.hostname !== 'clayrobot.netlify.app' &&
-	window.location.hostname !== 'localhost';
+	window.location.hostname !== 'clayrobot.netlify.app';
 
-if (IS_DEV) {
-	Config.BACKEND = 'https://backend.clayrobot.net/dev/memorygame';
-	Config.FALLBACK = 'https://backend.clayrobot.net/dev/memorygame/fallback';
-	Elements.title.textContent = "I'm not a robot (dev)";
-}
-else {
-	Config.BACKEND = 'https://backend.clayrobot.net/memorygame';
-	Config.FALLBACK = 'https://backend.clayrobot.net/memorygame/fallback';
+if (IS_DEV) Elements.title.textContent = "I'm not a robot (dev)";
+
+Config.getIntroMessage = function () {
+	const introMessage = randomItem(this.introMessage);
+	const words = randomItem(introMessage.words);
+	if (!introMessage.shuffle) return words;
+	else {
+		return shuffle(words);
+	}
 }
 
 Config.getCategories = async function() {

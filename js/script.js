@@ -5,7 +5,7 @@ import { GridLayout } from './gridlayout.js';
 import { Cell } from './cell.js';
 import { Board } from './board.js';
 import { BoardCreator } from './board.js';
-import { ImageValidator, randomItem, waitForFlag } from './utils.js';
+import { ImageValidator, randomItem, waitForFlag, shuffle } from './utils.js';
 import { CellLoopScheduler } from './CellSolvedLoop.js';
 
 class Game {
@@ -39,6 +39,7 @@ class Game {
 			previousLevel: -1,
 			score: {num: 0, denominator: 1},
 			saveProgress: true,
+			challengeMode: false,
 		};
 
 		this.boards = [
@@ -48,13 +49,14 @@ class Game {
 	}
 	createCells = function (numCells) {
 		const fragment = document.createDocumentFragment();
+		const introMessage = Config.getIntroMessage();
 		for (let i = 0; i < numCells; i++) {
 			const cell = new Cell(this);
 			if (Math.random() < Config.funColorChance) {
 				cell.setFrontColor(randomItem(Config.colors));
 			}
-			if (this.state.level === 0 && numCells === Config.introMessage.length) {
-				cell.writeOnFront(Config.introMessage[i]);
+			if (this.state.level === 0 && numCells === 4) {
+				cell.writeOnFront(introMessage[i]);
 				cell.setFontColor(this.colorSequencerLight.nextColor());
 			}
 			else if (Math.random() < Config.funGlyphChance && this.state.usedGlyphs.length < Config.glyphs.length) {
@@ -72,18 +74,25 @@ class Game {
 	};
 	activateCells = async function (board) {
 		let cellsCopy = [...this.state.cells];
-		let activeCellCount = 0;
 		let activatedCells = [];
 		// pick all of the pictures that will be given to cells
 		const randomTrendKeys = await this.trendSelector.getRandomTrendKeys(this.state.cells.length / 2);
 		// assign images to cells
 		for (let i = 0; i < randomTrendKeys.length; i++) {
 			const {key, usedTrend} = randomTrendKeys[i];
+			const trendObject = Config.trendData.trends[key];
+			if (!this.memory.challengeMode) shuffle(trendObject.url);
+			const images = [...trendObject.url];
 			const cellPair = [];
 			for (let j = 0; j < 2; j++) {
 				const index = Math.floor(Math.random() * cellsCopy.length);
 				const cell = cellsCopy.splice(index, 1)[0];
-				cell.activate(key, Config.trendData.trends[key]);
+				if (this.memory.challengeMode && images.length > 0) {
+					const imageIndex = Math.floor(Math.random() * images.length);
+					const url = images.splice(imageIndex, 1);
+					cell.activate(key, {...trendObject, url: url});
+				}
+				else cell.activate(key, trendObject);
 				cell.usedTrend = usedTrend;
 				cellPair.push(cell);
 				activatedCells.push(cell);
@@ -121,7 +130,8 @@ class Game {
 		let totalDuration; // ms — tune this one variable
 		let delayStep = 1.2;
 
-		if (numCells <= 8) totalDuration = 2000;
+		if (!victory) totalDuration = 1000;
+		else if (numCells <= 8) totalDuration = 2000;
 		else if (numCells <= 12) totalDuration = 3000;
 		else totalDuration = 4000;
 
@@ -289,8 +299,8 @@ class Game {
 		}, { once: true });
 		await new Promise(r => setTimeout(r, 320));
 		// Wait for cells to finish fading out before removing them
-		this.cellLoopScheduler.stop();
 		await this.deleteCells(victory);
+		this.cellLoopScheduler.stop();
 		// ── Splash message (blocks until animation completes) ────────
 		if (messageList) await Graphics.splashText(randomItem(messageList));
 		
@@ -326,6 +336,11 @@ class Game {
 		this.state.lives = Math.min(this.state.lives + 1, Config.maxLives);
 		Graphics.lifeDisplay.addLife(this.state.lives);
 	};
+	toggleChallengeMode = function (state) {
+		this.memory.challengeMode = state;
+		if (state === true) Elements.tooltip.classList.add('red');
+		else Elements.tooltip.classList.remove('red');
+	}
 	updateScore = async function(score, animate) {
 		const prev = this.memory.score.num;
 		this.memory.score = score;
@@ -352,7 +367,6 @@ class Game {
 
 const TrendSelector = function (trendData, game) {
 	const trends = trendData.trends;
-	const fetchedDate = trendData.fetchedDate;
 	const keys = {
 		unused: new Set(Object.keys(trends)),
 		used: new Set(),
@@ -423,7 +437,7 @@ const TrendSelector = function (trendData, game) {
 		}
 		if (game.memory.saveProgress) this.saveData();
 	}
-	this.getRandomTrendKeys = async function(amount) {
+	this.getRandomTrendKeys = async function (amount) {
 		const MAX_TRIES = 10;
 		const usedImages = [];
 		const randomTrendKeys = [];
@@ -431,37 +445,58 @@ const TrendSelector = function (trendData, game) {
 		const unusedKeys = [...keys.unused];
 		const deferredKeys = [...keys.deferred];
 		const usedKeys = [...keys.used];
+
 		for (let i = 0; i < amount; i++) {
 			let key;
 			let usedTrend = false;
-
 			let tries = 0;
-			let validImage = false;
-			while (!validImage && tries < MAX_TRIES) {
+			let validKeyFound = false;
+
+			while (!validKeyFound && tries < MAX_TRIES) {
 				tries++;
 				let pool;
 				if (unusedKeys.length > 0) pool = unusedKeys;
 				else if (deferredKeys.length > 0) pool = deferredKeys;
 				else { pool = usedKeys; usedTrend = true; }
+
 				if (pool.length === 0) break;
 
 				const index = Math.floor(Math.random() * pool.length);
 				key = pool.splice(index, 1)[0];
+				const trendObject = trends[key];
+				// 1. Normalize URLs into an array
+				let urlList = Array.isArray(trendObject.url) ? trendObject.url : [trendObject.url];
 
-				const images = Array.isArray(trends[key]?.url) ? trends[key].url : [trends[key]?.url];
-				if (images.some(img => usedImages.includes(img))) continue;
-				for (const img of images) {
-					const imageValid = await game.imageValidator.isValid(img);
-					if (imageValid) validImage = true;
+				// 2. Filter out images already used in this specific selection batch
+				urlList = urlList.filter(img => !usedImages.includes(img));
+
+				// 3. Validate URLs and remove the bad ones from the master data
+				const validationResults = await Promise.all(
+					urlList.map(async (img) => ({
+						url: img,
+						isValid: await game.imageValidator.isValid(img)
+					}))
+				);
+
+				const validUrls = validationResults.filter(r => r.isValid).map(r => r.url);
+
+				// 4. Update the actual trendData reference to remove broken links permanently
+				trendObject.url = Array.isArray(trendObject.url) ? validUrls : validUrls[0];
+
+				if ((validUrls.length > 0 && !game.memory.challengeMode) || (validUrls.length >= 2)) {
+					validKeyFound = true;
+					usedImages.push(...validUrls);
+				} else {
+					// If no URLs remain valid, mark the whole trend as unusable
+					markUnusable(key);
 				}
-				if (!validImage) markUnusable(key);
-				usedImages.push(...images);	
 			}
-			if (!validImage) {
+
+			if (!validKeyFound) {
 				console.error("No word with picture found.");
 				continue;
 			}
-			randomTrendKeys.push({key, usedTrend});
+			randomTrendKeys.push({ key, usedTrend });
 		}
 		return randomTrendKeys;
 	};
@@ -533,8 +568,9 @@ async function init() {
 	window.addEventListener('resize', () => game.gridLayout.resizeGrid());
 	window.addEventListener('click', () => game.handleClick());
 	Elements.faceDisplay.addEventListener('click', () => {
-		game.loseGame();
+		game.toggleChallengeMode(!game.memory.challengeMode);
 	});
+	console.log(await game.imageValidator.isValid('https://lh3.googleusercontent.com/9jZIYreatcahFp0f0fmxhSHd4Wee6YBatNXjiYH3MYyodXd0bK8bCbAJemlJxzqvjJFIDtPkq9qq=w640-h360-p-rw-ns-nd', true));
 }
 init();
 // document.addEventListener('click', () => {

@@ -46,9 +46,11 @@ export const ImageValidator = function () {
 			invalidatedImages = new Set(saved.invalid);
 		}
 	};
-	this.isValid = async function (url) {
-		if (invalidatedImages.has(url)) return false;
-		if (validatedImages.has(url)) return true;
+	this.isValid = async function (url, ignoreStorage = false) {
+		if (!ignoreStorage) {
+			if (invalidatedImages.has(url)) return false;
+			if (validatedImages.has(url)) return true;
+		}
 		const valid = await validateImage(url);
 		if (valid) validatedImages.add(url);
 		else invalidatedImages.add(url);
@@ -63,6 +65,16 @@ export const ImageValidator = function () {
 		localStorage.setItem('images', JSON.stringify(data));
 	}
 };
+
+export function shuffle(array) {
+	for (let i = array.length - 1; i > 0; i--) {
+		// Generate random index between 0 and i
+		const j = Math.floor(Math.random() * (i + 1));
+		// Swap elements array[i] and array[j]
+		[array[i], array[j]] = [array[j], array[i]];
+	}
+	return array;
+}
 
 export function waitForFlag(flagRef, state) {
 	return new Promise(resolve => {
