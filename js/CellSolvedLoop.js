@@ -2,21 +2,73 @@ import { Config } from './config.js';
 import { fitFontSize } from './utils.js';
 import { Graphics } from './graphics.js';
 
+export function CellLoopScheduler() {
+	const cellLoops = [];
+	let loopIndex = 0;
+	let playing = false;
+	this.newLoop = async function(...cells) {
+		const loop = new CellSolvedLoop(...cells);
+		loop.start();
+		cellLoops.splice(loopIndex, 0, loop);
+		if (!playing && cellLoops.some(loop => loop.imageSlideAvailable)) this.start();
+	}
+	this.start = async function () {
+		playing = true;
+		(async () => {
+			const delay = Config.delay.changeCellImage;
+			let success = true;
+			while (playing) {
+				if (success) {
+					const randomDelay = Math.random() * 3000;
+					await new Promise(r => setTimeout(r, delay + randomDelay))
+				};
+				if (!playing || cellLoops.length === 0) {
+					this.stop();
+					break;
+				}
+				loopIndex = loopIndex % cellLoops.length;
+				success = await this.slideImages(loopIndex);
+				loopIndex++;
+			}
+		})();
+	}
+	this.stop = function () {
+		playing = false
+		cellLoops.length = 0;
+	};
+	this.slideImages = async function (index) {
+		return await cellLoops[index].slideImages();
+	}
+	this.showViews = () => cellLoops.forEach(cellLoop => cellLoop.showViews());
+	this.hideViews = () => cellLoops.forEach(cellLoop => cellLoop.hideViews());
+	
+	this.endScreen = async function () {
+		await Promise.all(cellLoops.map(loop => loop.typingDone));
+		cellLoops.forEach(loop => {
+			loop.showViews();
+		});
+		(async () => {
+			const delay = Config.delay.changeCellLabel;
+			while (cellLoops.length > 0) {
+				await new Promise(r => setTimeout(r, delay));
+				if (cellLoops.length < 1) break;
+				cellLoops.forEach(loop => loop.hideViews());
+				await new Promise(r => setTimeout(r, delay));
+				if (cellLoops.length < 1) break;
+				cellLoops.forEach(loop => loop.showViews());
+			}
+		})();
+	}
+}	
+
 export class CellSolvedLoop {
 	constructor(...cells) {
-		let ended = false;
-		let stopped = false;
-		let typingResolver, endResolver;
-		const typingDone = new Promise(r => typingResolver = r);
-		const endPromise = new Promise(r => endResolver = r);
-		const specialAnimation = cells[0].bespoke;
+		let typingResolver;
+		this.typingDone = new Promise(r => typingResolver = r);
+		this.imageSlideAvailable = !!cells[0].image2;
 
 		const labelElements = [];
-		cells.forEach(cell => {
-			cell.typingDone = typingDone;
-			cell.endPromise = endPromise;
-			labelElements.push(cell.elements.label);
-		});
+		cells.forEach(cell => labelElements.push(cell.elements.label));
 
 		const text = cells[0].getDisplayName();
 		const testElement = cells[0].createLabelBuffer();
@@ -24,44 +76,22 @@ export class CellSolvedLoop {
 		cells[0].destroyLabelBuffer();
 		labelElements.forEach(e => e.style.fontSize = fontSize);
 
-		this.stop = function () {
-			stopped = true;
-		};
+		this.showViews = () => cells.forEach(cell => cell.showViews());
+		this.hideViews = () => cells.forEach(cell => cell.hideViews());
+		this.slideImages = async function () {
+			if (!this.imageSlideAvailable) return false;
+			await this.typingDone;
+			cells.forEach(cell => cell.slideImages());
+			new Promise(r => setTimeout(r, 1020)).then(() => {
+				cells.forEach(cell => cell.reverseImages());
+			});
+			return true;
+		}
 		this.start = async function () {
 			await Promise.all(cells.map(cell => cell.showBackground()));
 			await Graphics.typeText(text, ...labelElements);
 			await new Promise(r => setTimeout(r, Config.delay.resolveTyping));
 			typingResolver();
-			(async () => {
-				if (!cells[0].image2) return;
-				const delay = Config.delay.changeCellImage;
-				while (!stopped) {
-					await new Promise(r => setTimeout(r, delay));
-					if (stopped) break;
-					cells.forEach(cell => cell.slideImage());
-					await new Promise(r => setTimeout(r, delay));
-					if (stopped) break;
-					cells.forEach(cell => cell.reverseImages());
-				}
-			})();
-		};
-		this.end = async function () {
-			if (ended) return;
-			ended = true;
-			if (specialAnimation) cells.forEach(cell => cell.setBespoke());
-			cells.forEach(cell => cell.showViews());
-			endResolver();
-			(async () => {
-				const delay = Config.delay.changeCellLabel;
-				while (!stopped) {
-					await new Promise(r => setTimeout(r, delay));
-					if (stopped) break;
-					cells.forEach(cell => cell.hideViews());
-					await new Promise(r => setTimeout(r, delay));
-					if (stopped) break;
-					cells.forEach(cell => cell.showViews());
-				}
-			})();
 		};
 	}
 }

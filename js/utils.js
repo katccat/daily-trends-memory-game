@@ -6,22 +6,39 @@ export const ImageValidator = function () {
 	let validatedImages = new Set();
 	let invalidatedImages = new Set();
 
-	const validateImage = async function(url) {
+	const validateImage = async function (url) {
 		if (!url) return false;
+
 		return new Promise((resolve) => {
 			const img = new Image();
-			img.src = url;
-			img.onload = () => {
-				resolve(true);
-				cleanup();
-			};
-			img.onerror = () => { resolve(false); cleanup(); };
-			function cleanup() {
+			let settled = false;
+			let pollId;
+
+			function settle(result) {
+				if (settled) return;
+				settled = true;
+				clearTimeout(timeoutId);
+				clearInterval(pollId);
 				img.onload = null;
 				img.onerror = null;
+				img.src = "";
+				resolve(result);
 			}
+
+			// Poll for naturalWidth — becomes non-zero as soon as the first
+			// few bytes are decoded, well before onload fires
+			pollId = setInterval(() => {
+				if (img.naturalWidth > 0) settle(true);
+			}, 50);
+
+			img.onload = () => settle(true);
+			img.onerror = () => settle(false);
+
+			const timeoutId = setTimeout(() => settle(false), 5000);
+
+			img.src = url;
 		});
-	}
+	};
 
 	this.restore = function (saved) {
 		if (saved) {

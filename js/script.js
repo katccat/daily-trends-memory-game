@@ -3,13 +3,13 @@ import { Elements } from './graphics.js';
 import { Graphics } from './graphics.js';
 import { GridLayout } from './gridlayout.js';
 import { Cell } from './cell.js';
-import { CellSolvedLoop } from './CellSolvedLoop.js';
 import { Board } from './board.js';
 import { BoardCreator } from './board.js';
 import { ImageValidator, randomItem, waitForFlag } from './utils.js';
+import { CellLoopScheduler } from './CellSolvedLoop.js';
 
 class Game {
-	constructor(boards) {
+	constructor() {
 		this.state = {
 			coolDown: false,
 			cellsFading: false,
@@ -41,7 +41,10 @@ class Game {
 			saveProgress: true,
 		};
 
-		this.boards = boards;
+		this.boards = [
+			new Board(4, Config.trendData.trends),
+			new Board(8, Config.trendData.trends, 2, true),
+		];
 	}
 	createCells = function (numCells) {
 		const fragment = document.createDocumentFragment();
@@ -113,8 +116,6 @@ class Game {
 		}
 		else cells = this.state.cells;
 
-		for (const cell of cells) cell.stopLoop();
-
 		const numCells = cells.length;
 
 		let totalDuration; // ms — tune this one variable
@@ -152,10 +153,7 @@ class Game {
 			if (cell1.getName() === cell2.getName()) {
 				cell1.solve();
 				cell2.solve();
-				const solvedLoop = new CellSolvedLoop(cell1, cell2);
-				cell1.solvedLoop = solvedLoop;
-				cell2.solvedLoop = solvedLoop;
-				solvedLoop.start();
+				game.cellLoopScheduler.newLoop(cell1, cell2);
 				this.state.unsolvedCells -= 2;
 				this.state.solvedCells.push(cell1, cell2);
 				if (this.state.unsolvedCells <= 0) {
@@ -187,7 +185,11 @@ class Game {
 						}
 					}
 				}
-				if (this.state.avoidableMistakes > 0) this.faceChanger.changeFace(this.state.remainingMistakes);
+				if (this.state.avoidableMistakes > 0) {
+					this.faceChanger.changeFace(this.state.remainingMistakes);
+					if (this.state.remainingMistakes <= 3 && this.state.remainingMistakes >= 0)
+						Graphics.flashMessage(this.state.remainingMistakes);
+				}
 				if (this.state.remainingMistakes < 0) {
 					this.loseGame();
 					return;
@@ -219,8 +221,7 @@ class Game {
 		this.updateScore(this.trendSelector.getScore(), true);
 		this.faceChanger.resetFace(true);
 		this.state.level++;
-		await Promise.all(this.state.solvedCells.map(cell => cell.typingDone));
-		await Promise.all(this.state.solvedCells.map(cell => cell.solvedLoop.end()));
+		await this.cellLoopScheduler.endScreen();
 		this.state.awaitPlayer = true;
 		const showDelay = Config.delay.showContinuePrompt;
 		await new Promise(r => setTimeout(r, showDelay));
@@ -236,13 +237,16 @@ class Game {
 		this.state.coolDown = true;
 		this.removeLife();
 		this.trendSelector.addTrends(this.state.pendingTrends, false);
+		const gameOver = this.state.lives <= 0;
+		if (!this.memory.score.won) {
+			const removeNum = gameOver ? Config.removeAmountWhenGameOver : Config.removeAmountWhenLose;
+			this.trendSelector.removeTrends(removeNum);
+			await this.updateScore(this.trendSelector.getScore(), true);
+		}
 		await new Promise(resolve => setTimeout(resolve, Config.delay.loseTransition));
-		if (this.state.lives <= 0) {
-			this.restartGame();
-		}
-		else {
-			this.newGame(false);
-		}
+
+		if (gameOver) this.restartGame();
+		else this.newGame(false);
 	};
 	selectMessage = function (victory) {
 		if (this.state.firstRun) return null;
@@ -285,6 +289,7 @@ class Game {
 		}, { once: true });
 		await new Promise(r => setTimeout(r, 320));
 		// Wait for cells to finish fading out before removing them
+		this.cellLoopScheduler.stop();
 		await this.deleteCells(victory);
 		// ── Splash message (blocks until animation completes) ────────
 		if (messageList) await Graphics.splashText(randomItem(messageList));
@@ -321,21 +326,19 @@ class Game {
 		this.state.lives = Math.min(this.state.lives + 1, Config.maxLives);
 		Graphics.lifeDisplay.addLife(this.state.lives);
 	};
-	initScore = function (score) {
-		this.memory.score.num = score.num;
-		this.memory.score.denominator = score.denominator;
-	};
-	updateScore = function(score, animate) {
+	updateScore = async function(score, animate) {
 		const prev = this.memory.score.num;
 		this.memory.score = score;
-		if (animate) game.percentScorer.interpolateScore(game.memory.score);
-		let crossed = false;
-		if (this.memory.score.num >= this.memory.score.denominator) {
-			this.memory.score.won = true;
-			crossed = prev < this.memory.score.num;
+		if (animate) {
+			await game.percentScorer.interpolateScore(game.memory.score);
+			let crossed = false;
+			if (this.memory.score.num >= this.memory.score.denominator) {
+				this.memory.score.won = true;
+				crossed = prev < this.memory.score.num;
+			}
+			else crossed = Config.milestones.find(m => prev < m && this.memory.score.num >= m);
+			this.state.announceMilestone = crossed;
 		}
-		else crossed = Config.milestones.find(m => prev < m && this.memory.score.num >= m);
-		this.state.announceMilestone = crossed;
 		if (this.memory.saveProgress) localStorage.setItem('score', JSON.stringify(this.memory.score));
 	};
 	getPercentScore = function() {
@@ -397,16 +400,14 @@ const TrendSelector = function (trendData, game) {
 				moveKey(key, keys.used, keys.unusable);
 	};
 	this.markViewed = function(key) {
-		if (Config.deferViewedTrends) {
-			moveKey(key, keys.unused, keys.deferred);
-		}
+		moveKey(key, keys.unused, keys.deferred);
 	};
 	this.addTrends = function (trendSet, victory) {
 		if (trendSet.size < 1) return;
 		if (victory) {
 			for (const trend of trendSet) this.markUsed(trend);
 		}
-		else {
+		else if (Config.deferViewedTrends) {
 			for (const trend of trendSet) this.markViewed(trend);
 		}
 		if (game.memory.saveProgress) this.saveData();
@@ -414,7 +415,13 @@ const TrendSelector = function (trendData, game) {
 	this.removeTrends = function (amount) {
 		const usedKeys = [...keys.used];
 		amount = Math.min(amount, usedKeys.length);
-		//for (let i = 0)
+		const destinationSet = Config.deferViewedTrends ? keys.deferred : keys.unused;
+		for (let i = 0; i < amount; i++) {
+			const index = Math.floor(Math.random() * usedKeys.length);
+			const key = usedKeys.splice(index, 1)[0];
+			moveKey(key, keys.used, destinationSet);
+		}
+		if (game.memory.saveProgress) this.saveData();
 	}
 	this.getRandomTrendKeys = async function(amount) {
 		const MAX_TRIES = 10;
@@ -484,6 +491,7 @@ async function init() {
 	game.imageValidator = new ImageValidator();
 	game.trendSelector = new TrendSelector(Config.trendData, game);
 	game.percentScorer = new Graphics.PercentScorer(game.memory.score);
+	game.cellLoopScheduler = new CellLoopScheduler();
 	game.colorSequencerDark = new Graphics.colorSequencer(Config.darkColors);
 	game.colorSequencerLight = new Graphics.colorSequencer(Config.colors);
 	
@@ -518,7 +526,7 @@ async function init() {
 		game.memory.saveProgress = false;
 		localStorage.removeItem('fetchedDate');
 	};
-	game.initScore(game.trendSelector.getScore());
+	game.updateScore(game.trendSelector.getScore(), false);
 	Graphics.resetToolTip(game, true);
 	globalThis.game = game;
 	game.newGame(true);
@@ -529,3 +537,6 @@ async function init() {
 	});
 }
 init();
+// document.addEventListener('click', () => {
+// 	Graphics.splashText("I'm feeling lucky");
+// })

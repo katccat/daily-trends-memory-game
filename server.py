@@ -8,7 +8,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self.send_header("Expires", "0")
         super().end_headers()
 
-port = 8000
+port = 80
 server = ThreadingHTTPServer(("0.0.0.0", port), NoCacheHandler)
 print(f"Serving on http://localhost:{port} with caching disabled")
 server.serve_forever()

@@ -16,9 +16,10 @@ export class Cell {
 		this.usedTrend;
 		this.views;
 		this.bespoke = false;
-		this.solvedLoop;
+		this.bespokePlaying = false;
 		this.transitioning;
 		this.elements = {};
+		this.image2 = false;
 
 		this.build();
 	}
@@ -60,21 +61,18 @@ export class Cell {
 	getElement() {
 		return this.elements.parent;
 	}
-	stopLoop() {
-		if (this.solvedLoop) this.solvedLoop.stop();
-	}
 	remove() {
 		this.state = Cell.State.INACTIVE;
 		this.elements.parent.remove();
 		this.destroyLabelBuffer();
-		this.stopLoop();
 	}
 	createLabelBuffer() {
-		this.elements.labelBuffer = document.createElement('div');
-		this.elements.labelBuffer.className = 'cell-label-buffer';
-		this.elements.labelBuffer.style.width = this.elements.label.offsetWidth + 'px';
-		//this.elements.labelBuffer.style.height = this.elements.label.offsetHeight + 'px';
-		this.elements.labelBuffer.style.fontSize = getComputedStyle(this.elements.label).fontSize;
+		const buffer = this.elements.labelBuffer = document.createElement('div');
+		buffer.className = 'cell-label-buffer';
+		buffer.style.width = this.elements.label.offsetWidth + 'px';
+		const style = getComputedStyle(this.elements.label);
+		buffer.style.fontSize = style.fontSize;
+		buffer.style.padding = style.padding;
 		document.body.appendChild(this.elements.labelBuffer);
 		return this.elements.labelBuffer;
 	}
@@ -167,7 +165,7 @@ export class Cell {
 	setBackColor(color) {
 		this.elements.labelBg.style.backgroundColor = color;
 	}
-	slideImage() {
+	slideImages() {
 		if (!this.image2) return;
 		this.elements.imageContainer.classList.add('show-second');
 	}
@@ -192,6 +190,7 @@ export class Cell {
 		container.style.transition = '';
 	}
 	setBespoke() {
+		this.bespokePlaying = true;
 		const element = this.elements.labelBg;
 		const current = getComputedStyle(element).backgroundColor;
 		const colors = [...Config.darkColors];
@@ -221,6 +220,7 @@ export class Cell {
 		return anim.finished;
 	}
 	showViews() {
+		if (!this.bespokePlaying && this.bespoke) this.setBespoke();
 		this.elements.number.classList.add('fade-in');
 		this.elements.label.classList.add('fade-out');
 	}

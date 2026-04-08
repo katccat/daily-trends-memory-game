@@ -83,7 +83,7 @@
 	/* Faces forward by default; hidden after flip */
 	transform: translateZ(calc(var(--cell-thickness) * 1));
 	backface-visibility: hidden;
-	box-shadow: inset 0px 4px 0px 0px var(--cell-edge-color);
+	box-shadow: inset 0px max(2cqi, 1px) 0px 0px var(--cell-edge-color);
 }
 .cell-edge {
 	position: absolute;
@@ -187,7 +187,7 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	padding: 10px;
+	padding: 5cqi;
 	word-break: break-word;
 	overflow-wrap: break-word;
 	pointer-events: none;
@@ -197,6 +197,7 @@
 	transition: opacity 0.8s linear;
 }
 .cell-label-buffer {
+	z-index: 99;
 	font-family: "Google Sans";
 	position: fixed;
 	top: 0;
@@ -212,7 +213,7 @@
 }
 .cell-number {
 	padding: 10px;
-	text-shadow: 2px 1px 6px rgba(0, 0, 0, 0.25);
+	/* text-shadow: 2px 1px 6px rgba(0, 0, 0, 0.25); */
 	font-family: "Google Sans";
 	font-size: 30cqh;
 	display: flex;

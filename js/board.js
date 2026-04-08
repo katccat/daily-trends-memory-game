@@ -21,9 +21,9 @@ export class BoardCreator {
 			hard: [30, 36],
 		},
 		phone: {
-			easy: [8, 10, 12],
-			medium: [14, 18],
-			hard: [20],
+			easy: [8, 10, 10, 12, 12],
+			medium: [14, 14, 18, 18],
+			hard: [20, 20],
 		}
 	};
 	static levels = Config.difficulty;
@@ -56,12 +56,12 @@ export class BoardCreator {
 		const board = new Board(cellCount, category);
 		board.allowRecycleWords = allowRecycleWords;
 		if (cellCount > 14) {
-			board.additionalMistakes = 3;
-		}
-		else if (cellCount > 8) {
 			board.additionalMistakes = 2;
 		}
-		else if (cellCount > 4) board.additionalMistakes = 1;
+		else if (cellCount > 8) {
+			board.additionalMistakes = 1;
+		}
+		else if (cellCount > 4) board.additionalMistakes = 0;
 
 		if (cellCount >= BoardCreator.giveLifeThreshold) {
 			board.giveLife = true;

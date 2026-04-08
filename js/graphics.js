@@ -8,6 +8,8 @@ export const Elements = {
 	levelDisplay: document.getElementById('level-counter'),
 	scoreDisplay: document.getElementById('score-counter'),
 	splashText: document.getElementById('splash-text'),
+	messageContainer: document.getElementById('in-game-message-container'),
+	messageText: document.getElementById('in-game-message'),
 	splashContainer: document.getElementById('splash-container'),
 	faceDisplay: document.getElementById('face'),
 	faceOverlay: document.getElementById('glasses'),
@@ -123,17 +125,17 @@ Graphics.faceChanger = function(game) {
 }
 Graphics.splashText = async function (text) {
 	const splashContainer = Elements.splashContainer;
-	splashContainer.classList.toggle("notransition", true);
-	splashContainer.classList.remove("expand");
-	void splashContainer.offsetWidth;
 	Elements.splashText.textContent = text;
-	splashContainer.classList.toggle("notransition", false);
-	splashContainer.classList.toggle("expand", true);
-	return new Promise(resolve => setTimeout(() => {
-		splashContainer.classList.remove("expand");
-		resolve();
-	}, 1700));
+	const animation = Config.animation.splash2;
+	const anim = splashContainer.animate(animation.keyframes, animation.options);
+	return anim.finished;
 };
+Graphics.flashMessage = async function (text) {
+	Elements.messageText.textContent = text;
+	const animation = Config.animation.splash;
+	const anim = Elements.messageContainer.animate(animation.keyframes, animation.options);
+	return anim.finished;
+}
 Graphics.lifeDisplay = {
 	lifeElements: Elements.lives,
 	getIndex(life) {
@@ -202,7 +204,7 @@ Graphics.PercentScorer = function (score) {
 		scoreDisplay.textContent = formattedScore + "%";
 	};
 
-	this.interpolateScore = function (newScore) {
+	this.interpolateScore = async function (newScore) {
 		const displayStart = percentScore(lastScore);
 		const displayEnd = percentScore(newScore);
 		lastScore = newScore;
@@ -213,22 +215,29 @@ Graphics.PercentScorer = function (score) {
 			}, 1500);
 			return;
 		}
-		// Cancel any in-progress interpolation
+		else if (displayEnd < displayStart) scoreDisplay.classList.add('debit');
+		scoreDisplay.classList.add('enlarge');
 		if (intervalId) clearInterval(intervalId);
 
-		let current = displayStart;
-		const step = displayEnd > current ? 0.1 : -0.1;
-		scoreDisplay.classList.add('enlarge');
-		intervalId = setInterval(() => {
-			current += step;
-			displayScore(current.toFixed(rounding));
-			const isComplete = step > 0 ? parseFloat(current.toFixed(rounding)) >= displayEnd : parseFloat(current.toFixed(rounding)) <= displayEnd;
-			if (isComplete) {
-				clearInterval(intervalId);
-				intervalId = null;
-				scoreDisplay.classList.remove('enlarge');
-			}
-		}, delay);
+		return new Promise(resolve => {
+			let current = displayStart;
+			const step = displayEnd > current ? 0.1 : -0.1;
+			scoreDisplay.classList.add('enlarge');
+			intervalId = setInterval(() => {
+				current += step;
+				displayScore(current.toFixed(rounding));
+				const isComplete = step > 0
+					? parseFloat(current.toFixed(rounding)) >= displayEnd
+					: parseFloat(current.toFixed(rounding)) <= displayEnd;
+				if (isComplete) {
+					clearInterval(intervalId);
+					intervalId = null;
+					scoreDisplay.classList.remove('enlarge');
+					scoreDisplay.classList.remove('debit');
+					resolve();
+				}
+			}, delay);
+		});
 	};
 
 	this.updateScore = function (score) {

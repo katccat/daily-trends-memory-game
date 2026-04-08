@@ -2,12 +2,14 @@ import { Elements } from './graphics.js';
 export const Config = {
 	delay: {
 		fade: 700,
-		showContinuePrompt: 800,
+		showContinuePrompt: 500,
 		changeCellLabel: 4000,
-		changeCellImage: 5000,
+		changeCellImage: 1500,
 		resolveTyping: 1000,
 		loseTransition: 1000,
 	},
+	removeAmountWhenLose: 2,
+	removeAmountWhenGameOver: 12,
 	trendData: {},
 	funColorChance: 0,
 	funGlyphChance: 0.1,
@@ -16,23 +18,23 @@ export const Config = {
 	scoreRounding: 1,
 	deferViewedTrends: false,
 	colors: [
-		'#ed6a5e', // red
-		'#86b2f9', // blue
-		'#ffd65a', // yellow
-		'#76d590', // green
+		'rgba(237, 106, 94, 1)',  // red
+		'rgba(134, 178, 249, 1)', // blue
+		'rgba(255, 214, 90, 1)',  // yellow
+		'rgba(118, 213, 144, 1)', // green
 	],
 	darkColors: [
-		'rgba(66, 133, 244, 0.7)',
-		'rgba(234, 67, 53, 0.7)',
-		'rgba(251, 188, 5, 0.7)',
-		'rgba(52, 168, 83, 0.7)',
+		'rgba(66, 133, 244, 0.65)',
+		'rgba(234, 67, 53, 0.6)',
+		'rgba(251, 188, 5, 0.66)',
+		'rgba(52, 168, 83, 0.67)',
 	],
 	messages: {
 		intro: ["I'm feeling lucky"],
-		victory: ["I'm not a robot", "Great!", "Amazing!", "Fantastic!"],
-		perfect: ['Perfect!', "I'm feeling lucky"],
+		victory: ["I'm not a robot.", "Great!", "Amazing!", "Fantastic!"],
+		perfect: ['Perfect!', "I'm feeling lucky!"],
 		nearmiss: ["Phew!", "Close!"],
-		failure: ["Aw, snap!", "That's an error.", "Please try again", "Only human!"],
+		failure: ["Aw, snap!", "That's an error.", "Please try again.", "Only human!"],
 		gameover: ["Game over!"],
 		end: ["OMG 100%!", "You ARE a robot!"],
 	},
@@ -81,9 +83,47 @@ export const Config = {
 					{ transform: 'translateX(100%)', offset: 0 },
 					{ transform: 'translateX(0)', offset: 1 },
 				],
-				options: { duration: 700, easing: 'ease-out', fill: 'forwards' },
+				options: { duration: 820, easing: 'ease-out', fill: 'forwards' },
 			},
 		},
+		splash: {
+			keyframes: [
+				{ transform: 'translate(-50%, -50%) scale(0.7)', opacity: 0, offset: 0 },
+				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 1, offset: 0.2 },
+				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 1, offset: 0.75 },
+				{ transform: 'translate(-50%, -50%) scale(1.1)', opacity: 0, offset: 1 },
+			],
+			options: {
+				duration: 1800,
+				iterations: 1,
+				easing: 'ease-in-out',
+			}
+		},
+		splash2: {
+			keyframes: [
+				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0, offset: 0 },
+				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0.7, offset: 0.4 },
+				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0.7, offset: 0.7 },
+				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0, offset: 1 },
+			],
+			options: {
+				duration: 1700,
+				iterations: 1,
+				easing: 'ease-out',
+			}
+		},
+		splash3: {
+			keyframes: [
+				{ transform: 'translate(-50%, -50%) scale(0.1)', opacity: 1, offset: 0 },
+				{ transform: 'translate(-50%, -50%) scale(1.8)', opacity: 0, offset: 1 },
+			],
+			options: {
+				duration: 1600,
+				iterations: 1,
+				// easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+				easing: 'ease-out',
+			}
+		}
 	}
 };
 
