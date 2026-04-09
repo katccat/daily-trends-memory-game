@@ -194,16 +194,22 @@ img:not([src]) {
 #tooltip.active {
 	opacity: 1 !important;
 }
-#continue-prompt {
-	z-index: 5;
+.center {
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
+	pointer-events: none;
+}
+#splash-image {
+	z-index: 6;
+	opacity: 0;
+}
+#continue-prompt {
+	z-index: 5;
 	text-align: center;
 	opacity: 0;
 	will-change: opacity;
-	pointer-events: none;
 	font-family: "Tiny5";
 	font-size: min(18vw, 7rem);
 	color: rgb(247, 247, 247);
@@ -215,17 +221,12 @@ img:not([src]) {
 #continue-prompt.fade-in {
 	opacity: 0.8 !important;
 }
-#in-game-message-container {
+#in-game-message {
+	margin-left: 0.06em;
 	z-index: 5;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
 	opacity: 0;
 	text-align: center;
-	
 	will-change: opacity;
-	pointer-events: none;
 	font-family: "Tiny5";
 	font-size: 40vw;
 	color: rgb(255, 255, 255);
@@ -236,18 +237,10 @@ img:not([src]) {
 	transition:
 		opacity 0.5s linear;
 }
-#in-game-message {
-	margin-left: 0.12em;
-}
 #splash-container {
-	position: absolute;
-	top: 50%;
-	left: 50%;
 	z-index: 5;
-	transform: translate(-50%, -50%);
 	opacity: 0;
 	will-change: transform, opacity;
-	pointer-events: none;
 	/* width: min(90vw, 600px); */
 	width: 90%;
 	text-align: center;

@@ -8,9 +8,9 @@ export const Elements = {
 	levelDisplay: document.getElementById('level-counter'),
 	scoreDisplay: document.getElementById('score-counter'),
 	splashText: document.getElementById('splash-text'),
-	messageContainer: document.getElementById('in-game-message-container'),
-	messageText: document.getElementById('in-game-message'),
 	splashContainer: document.getElementById('splash-container'),
+	messageText: document.getElementById('in-game-message'),
+	splashImage: document.getElementById('splash-image'),
 	faceDisplay: document.getElementById('face'),
 	faceOverlay: document.getElementById('glasses'),
 	continuePrompt: document.getElementById('continue-prompt'),
@@ -19,103 +19,108 @@ export class Graphics {};
 
 Graphics.faceChanger = function(game) {
 	this.game = game;
-	const faceImages = {
-		mistake1: [//1 2 
-			'images/faces/2.png',
-			'images/faces/3a.png',
-			//'images/faces/4a.png',
-		],
-		mistake2: [
-			'images/faces/3b.png',
-			'images/faces/4b.png',
-			'images/faces/4b.gif',
-			'images/faces/5b.gif',
-		],
-		default: 'images/faces/1.png',
-		died: 'images/faces/7b.png',
-		diedImmediately: 'images/faces/7a.png',
-		special1: 'images/faces/special1.png',
-		special2: 'images/faces/special2.gif',
-		special3: 'images/faces/special3.gif',
-		trophy: 'images/faces/trophy_resized.gif',
-		brokenGlasses: 'images/faces/break.gif',
-	};
-
-	let maxMistakes;
-	let doSequence2 = false;
-	let special = false
-	let dead = false;
 	const faceDisplay = Elements.faceDisplay;
 	const faceOverlay = Elements.faceOverlay;
 
-	this.setMaxMistakes = function (mistakes) {
-		maxMistakes = mistakes;
-	}
+	const fx = {
+		brokenGlasses: 'images/faces/break.gif',
+	};
+	const faceImages = {
+		firstTrack: [
+			{ src: 'images/faces/2.png' },
+			{ src: 'images/faces/3a.png' },
+			{ src: 'images/faces/scarf.png' },
+		],
+		countDown: {
+			length: 3,
+			threshold: 1,
+			strike1: [
+				{ src: 'images/faces/4a.gif' },
+				{ src: 'images/faces/5a.gif' },
+				{ src: 'images/faces/7a.png' },
+			],
+			strike2: [
+				{ src: 'images/faces/4b.gif' }, //i0 r1
+				{ src: 'images/faces/5b.gif' }, //i1 r0
+				{ src: 'images/faces/7b.png' }, //i2 r-1
+			],
+		},
+		default: { src: 'images/faces/default.png', threshold: 0 },
+		start: [
+			{ src: 'images/faces/trophy_resized.gif', fx: fx.brokenGlasses, threshold: 100 },
+			{ src: 'images/faces/special3.gif', fx: fx.brokenGlasses, threshold: 90 },
+			{ src: 'images/faces/special2.gif', fx: fx.brokenGlasses, threshold: 75 },
+			{ src: 'images/faces/special1.png', fx: fx.brokenGlasses, threshold: 50 },
+		],
+	};
+	faceImages.start.push(faceImages.default);
+	
+	let dead = false;
+	let countedMistakes = 0;
+	let currentFace;
+	
 	this.changeFace = function () {
 		if (dead) return;
-		if (this.game.state.remainingMistakes < 0) {
-			if (this.game.state.avoidableMistakes == 1) {
-				if (special) faceOverlay.src = faceImages.brokenGlasses + '?t=' + Date.now();
-				faceDisplay.src = faceImages.diedImmediately;
-			}
-			else {
-				faceDisplay.src = faceImages.died;
-			}
-			dead = true;
-			return;
-		}
-		let length;
-		if (this.game.state.avoidableMistakes > 1) {
-			doSequence2 = true;
-			length = faceImages.mistake2.length;
-		}
-		else length = faceImages.mistake1.length;
 
-		let progress = maxMistakes - Math.max(this.game.state.remainingMistakes, 0);
-		let index = Math.min(Math.round(
-			(progress / maxMistakes) * (length - 1)
-		), length - 1);
+		const remaining = game.state.remainingMistakes;
+		const avoidable = game.state.avoidableMistakes;
 
-		if (doSequence2) faceDisplay.src = faceImages.mistake2[index];
-		else faceDisplay.src = faceImages.mistake1[index];
-		if (special) faceOverlay.src = faceImages.brokenGlasses + '?t=' + Date.now();
-		special = false;
+		if (currentFace?.fx) faceOverlay.src = cacheBust(currentFace.fx);
+
+		if (remaining <= faceImages.countDown.threshold) {
+			const strike2 = (avoidable > 1);
+			const sequence = strike2 ? faceImages.countDown.strike2 : faceImages.countDown.strike1;
+			const index = Math.max(Math.min(faceImages.countDown.threshold - remaining, sequence.length - 1), 0);
+			currentFace = sequence[index];
+			Graphics.flashImage(currentFace.src);
+		}
+		else if (avoidable > 0) {
+			countedMistakes++;
+			const index = Math.max(Math.min(countedMistakes - 1, faceImages.firstTrack.length), 0);
+			currentFace = faceImages.firstTrack[index];
+		}
+
+		faceDisplay.src = currentFace.src;
+		if (remaining < 0) dead = true;
 	}
-	this.resetFace = function (victory = false) {
+	this.resetFace = function (victory = false, animate = false) {
 		const score = game.getPercentScore();
-		if (victory && score >= 50) {
-			special = true;
-			if (score >= 100) {
-				faceDisplay.src = faceImages.trophy
-			}
-			else if (score >= 90) {
-				faceDisplay.src = faceImages.special3;
-			}
-			else if (score >= 75) {
-				faceDisplay.src = faceImages.special2;
-			}
-			else {
-				faceDisplay.src = faceImages.special1;
+		currentFace = null;
+		if (victory) {
+			for (const tier of faceImages.start) {
+				if (score >= tier.threshold) {
+					currentFace = tier;
+					break;
+				}
 			}
 		}
-		else {
-			special = false;
-			faceDisplay.src = faceImages.default;
-		}
-		doSequence2 = false;
+		if (!currentFace) currentFace = faceImages.default;
+		faceDisplay.src = currentFace.src;
+		countedMistakes = 0;
 		dead = false;
+		// if (animate && currentFace !== faceImages.default) Graphics.flashImage(currentFace.src);
+	}
+	const cacheBust = function (src) {
+		return src + '?t=' + Date.now();
 	}
 }
 Graphics.splashText = async function (text) {
 	const splashContainer = Elements.splashContainer;
-	Elements.splashContainer.classList.add('fade-in');
+	splashContainer.classList.add('fade-in');
 	await this.typeText(text, 90, Elements.splashText);
-	Elements.splashContainer.classList.remove('fade-in');
+	splashContainer.classList.remove('fade-in');
 };
 Graphics.flashMessage = async function (text) {
 	Elements.messageText.textContent = text;
-	const animation = Config.animation.splash;
-	const anim = Elements.messageContainer.animate(animation.keyframes, animation.options);
+	const animation = Config.animation.splash2;
+	const anim = Elements.messageText.animate(animation.keyframes, animation.options);
+	return anim.finished;
+}
+Graphics.flashImage = async function (src) {
+	const image = Elements.splashImage;
+	image.src = src;
+	const animation = Config.animation.splash2;
+	const anim = image.animate(animation.keyframes, animation.options);
 	return anim.finished;
 }
 Graphics.resetToolTip = function(game, victory) {

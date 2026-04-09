@@ -14,13 +14,12 @@
 	<link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-	<meta name="referrer" content="no-referrer">
 	<meta name="description" content="A memory match game featuring random images from the web for the tiles!">
 </head>
 
 <body>
 	<div id="background"></div>
-	<div id="splash-container">
+	<div id="splash-container" class="center">
 		<span id="splash-text">I'm feeling lucky</span>
 	</div>
 	<div id="grid-container">
@@ -38,10 +37,9 @@
 			</div>
 		</div>
 		<div id="grid">
-			<div id="in-game-message-container"><span id="in-game-message">0</span></div>
-			<div id="continue-prompt">
-				<span>Tap to<br>Continue</span>
-			</div>
+			<div id="in-game-message" class="center">0</div>
+			<div id="continue-prompt" class="center">Tap to<br>Continue</div>
+			<img id="splash-image" class="center" src="images/faces/7a.png">
 		</div>
 	</div>
 	<div style="display: none;">

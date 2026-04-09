@@ -125,24 +125,11 @@ export const Config = {
 		},
 		splash2: {
 			keyframes: [
-				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0, offset: 0 },
-				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0.7, offset: 0.4 },
-				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0.7, offset: 0.7 },
-				{ transform: 'translate(-50%, -50%) scale(1)', opacity: 0, offset: 1 },
-			],
-			options: {
-				duration: 2000,
-				iterations: 1,
-				easing: 'ease-out',
-			}
-		},
-		splash3: {
-			keyframes: [
 				{ transform: 'translate(-50%, -50%) scale(0.1)', opacity: 1, offset: 0 },
 				{ transform: 'translate(-50%, -50%) scale(1.4)', opacity: 0, offset: 1 },
 			],
 			options: {
-				duration: 2000,
+				duration: 1000,
 				iterations: 1,
 				// easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
 				easing: 'ease-out',

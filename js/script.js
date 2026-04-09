@@ -196,9 +196,8 @@ class Game {
 					}
 				}
 				if (this.state.avoidableMistakes > 0) {
-					this.faceChanger.changeFace(this.state.remainingMistakes);
-					if (this.state.remainingMistakes <= 3 && this.state.remainingMistakes >= 0)
-						Graphics.flashMessage(this.state.remainingMistakes);
+					this.faceChanger.changeFace();
+					// if (this.state.remainingMistakes <= 3 && this.state.remainingMistakes >= 0) Graphics.flashMessage(this.state.remainingMistakes);
 				}
 				if (this.state.remainingMistakes < 0) {
 					this.loseGame();
@@ -229,7 +228,7 @@ class Game {
 		
 		this.trendSelector.addTrends(this.state.pendingTrends, true);
 		this.updateScore(this.trendSelector.getScore(), true);
-		this.faceChanger.resetFace(true);
+		this.faceChanger.resetFace(true, true);
 		this.state.level++;
 		await this.cellLoopScheduler.endScreen();
 		this.state.awaitPlayer = true;
@@ -323,7 +322,6 @@ class Game {
 		await this.activateCells(this.board);
 
 		// ── Finalise ─────────────────────────────────────────────────
-		this.faceChanger.setMaxMistakes(this.state.remainingMistakes);
 		this.state.coolDown = false;
 		this.state.firstRun = false;
 		this.memory.previousLevel = this.state.level;
@@ -572,13 +570,13 @@ async function init() {
 	globalThis.game = game;
 	game.newGame(true);
 	window.addEventListener('resize', () => game.gridLayout.resizeGrid());
-	window.addEventListener('click', () => game.handleClick());
+	Elements.grid.addEventListener('click', () => game.handleClick());
 	Elements.faceDisplay.addEventListener('click', () => {
 		game.toggleChallengeMode(!game.memory.challengeMode);
 	});
-	// console.log(await game.imageValidator.isValid('https://ts4.mm.bing.net/th?id=OIP.J0y55uufKnHF7tkW56YCCwHaEH&pid=15.1', true));
 }
 init();
 // document.addEventListener('click', () => {
-// 	Graphics.splashText("I'm feeling lucky");
+// 	// Graphics.splashText("I'm feeling lucky");
+// 	Graphics.flashImage("images/faces/7a.png");
 // })
