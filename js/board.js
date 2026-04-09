@@ -16,7 +16,7 @@ export class Board {
 export class BoardCreator {
 	static cellCounts = {
 		normal: {
-			easy: [8, 10, 12, 14],
+			easy: [10, 12, 14],
 			medium: [16, 18, 20, 24],
 			hard: [30, 36],
 		},

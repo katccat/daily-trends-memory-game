@@ -65,7 +65,7 @@ export class CellSolvedLoop {
 	constructor(...cells) {
 		let typingResolver;
 		this.typingDone = new Promise(r => typingResolver = r);
-		this.imageSlideAvailable = !!cells[0].image2;
+		this.imageSlideAvailable = cells[0].imageSlideAvailable;
 
 		const labelElements = [];
 		cells.forEach(cell => labelElements.push(cell.elements.label));
@@ -82,9 +82,6 @@ export class CellSolvedLoop {
 			if (!this.imageSlideAvailable) return false;
 			await this.typingDone;
 			cells.forEach(cell => cell.slideImages());
-			new Promise(r => setTimeout(r, 1020)).then(() => {
-				cells.forEach(cell => cell.reverseImages());
-			});
 			return true;
 		}
 		this.start = async function () {

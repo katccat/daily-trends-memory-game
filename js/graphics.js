@@ -14,23 +14,6 @@ export const Elements = {
 	faceDisplay: document.getElementById('face'),
 	faceOverlay: document.getElementById('glasses'),
 	continuePrompt: document.getElementById('continue-prompt'),
-	lives: [
-		{ // life 1 index 0
-			animated: document.getElementById('life1-gif'),
-			static: document.getElementById('life1-static'),
-			dead: document.getElementById('life1-dead'),
-		},
-		{ // life 2 index 1
-			animated: document.getElementById('life2-gif'),
-			static: document.getElementById('life2-static'),
-			dead: document.getElementById('life2-dead'),
-		},
-		{ // life 3 index 2
-			animated: document.getElementById('life3-gif'),
-			static: document.getElementById('life3-static'),
-			dead: document.getElementById('life3-dead'),
-		},
-	],
 };
 export class Graphics {};
 
@@ -135,57 +118,8 @@ Graphics.flashMessage = async function (text) {
 	const anim = Elements.messageContainer.animate(animation.keyframes, animation.options);
 	return anim.finished;
 }
-Graphics.lifeDisplay = {
-	lifeElements: Elements.lives,
-	getIndex(life) {
-		const index = Math.max(Math.min(life - 1, this.lifeElements.length - 1), 0);
-		return index;
-	},
-	show(element) {
-		element.classList.remove('fade-out');
-	},
-	hide(element) {
-		element.classList.add('fade-out');
-	},
-	animateLife(life) {
-		const index = this.getIndex(life);
-
-		this.show(this.lifeElements[index].animated);
-		this.hide(this.lifeElements[index].static);
-		this.hide(this.lifeElements[index].dead);
-	},
-	staticLife(life) {
-		const index = this.getIndex(life);
-
-		this.hide(this.lifeElements[index].animated);
-		this.show(this.lifeElements[index].static);
-		this.hide(this.lifeElements[index].dead);
-	},
-	removeLife(life) {
-		const index = this.getIndex(life);
-
-		this.hide(this.lifeElements[index].animated);
-		this.hide(this.lifeElements[index].static);
-		this.show(this.lifeElements[index].dead);
-	},
-	addLife(life) {
-		const index = this.getIndex(life);
-
-		this.animateLife(life);
-		if (index > 0) this.staticLife(life - 1);
-	},
-	stageLives(lives) {
-		this.lifeElements.forEach((_, i) => {
-			const life = i + 1;
-			if (life < lives) this.staticLife(life);
-			else if (life === lives) this.animateLife(life);
-			else this.removeLife(life);
-		});
-	},
-}
 Graphics.resetToolTip = function(game, victory) {
 	Elements.levelDisplay.textContent = `Level ${game.state.level}`;
-	this.lifeDisplay.stageLives(game.state.lives);
 	game.percentScorer.updateScore(game.memory.score);
 	game.faceChanger.resetFace(victory);
 }

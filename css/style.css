@@ -133,13 +133,6 @@ body.active #background, [data-theme="dark"] #background {
 	align-items: center;
 }
 
-#lives-container {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-}
 .face-container {
 	height: 56px;
 	margin-bottom: -5px;
@@ -161,21 +154,6 @@ body.active #background, [data-theme="dark"] #background {
 }
 img:not([src]) {
 	visibility: hidden;
-}
-.life-slot {
-	display: none;
-	position: relative;
-	height: 24px;
-	width: 24px;
-	/* match your image's aspect ratio */
-}
-
-.life-slot .life {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 24px;
-	transition: 0.5s linear;
 }
 
 #grid-container {

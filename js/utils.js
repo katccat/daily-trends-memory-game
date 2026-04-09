@@ -57,9 +57,16 @@ export const ImageValidator = function () {
 	};
 	this.isValid = async function (url, ignoreStorage = false) {
 		if (!ignoreStorage) {
-			if (invalidatedImages.has(url)) return false;
-			if (validatedImages.has(url)) return true;
+			if (invalidatedImages.has(url)) {
+				console.log(`already invalid for ${url}`); 
+				return false;
+			}
+			if (validatedImages.has(url)) {
+				console.log(`already valid for ${url}`); 
+				return true;
+			}
 		}
+		console.log(`running dry for ${url}`);
 		const valid = await validateImage(url);
 		if (valid) validatedImages.add(url);
 		else invalidatedImages.add(url);

@@ -332,10 +332,7 @@ class Game {
 		this.state.reset();
 		this.newGame(false);
 	};
-	addLife = function () {
-		this.state.lives = Math.min(this.state.lives + 1, Config.maxLives);
-		Graphics.lifeDisplay.addLife(this.state.lives);
-	};
+	
 	toggleChallengeMode = function (state) {
 		this.memory.challengeMode = state;
 		if (state === true) Elements.tooltip.classList.add('red');
@@ -362,9 +359,11 @@ class Game {
 	getPercentScore = function() {
 		return parseFloat((this.memory.score.num / this.memory.score.denominator * 100).toFixed(Config.scoreRounding));
 	}
-
+	addLife = function () {
+		this.state.lives = Math.min(this.state.lives + 1, Config.maxLives);
+	};
 	removeLife = function () {
-		Graphics.lifeDisplay.removeLife(this.state.lives--);
+		this.state.lives = Math.max(this.state.lives - 1, 0);
 	};
 }
 
@@ -469,6 +468,11 @@ const TrendSelector = function (trendData, game) {
 				const trendObject = trends[key];
 				// 1. Normalize URLs into an array
 				let urlList = Array.isArray(trendObject.url) ? trendObject.url : [trendObject.url];
+				
+				if (urlList.length === 0 || urlList[0] === undefined) {
+					markUnusable(key);
+					continue;
+				}
 
 				// 2. Filter out images already used in this specific selection batch
 				urlList = urlList.filter(img => !usedImages.includes(img));

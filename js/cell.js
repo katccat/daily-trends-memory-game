@@ -19,7 +19,6 @@ export class Cell {
 		this.bespokePlaying = false;
 		this.transitioning;
 		this.elements = {};
-		this.image2 = false;
 
 		this.build();
 	}
@@ -34,8 +33,8 @@ export class Cell {
 		const number = this.elements.number = el('div', 'cell-number');
 		const label = this.elements.label = el('div', 'cell-label');
 		const labelBg = this.elements.labelBg = el('div', 'cell-label-bg');
-		const image1 = this.elements.image1 = el('div', 'cell-image');
-		const image2 = this.elements.image2 = el('div', 'cell-image');
+		const imageA = this.elements.imageA = el('div', 'cell-image');
+		const imageB = this.elements.imageB = el('div', 'cell-image');
 		const imgContainer = this.elements.imageContainer = el('div', 'cell-image-container');
 		const cellBack = el('div', 'cell-back');
 		const card = this.elements.card = el('div', 'cell-card');
@@ -51,7 +50,7 @@ export class Cell {
 			this.elements.edge[side] = element;
 		});
 
-		imgContainer.append(image1, image2);
+		imgContainer.append(imageA, imageB);
 		cellBack.append(imgContainer);
 		cellBack.append(labelBg);
 		card.append(cellBack, front, edges);
@@ -85,23 +84,22 @@ export class Cell {
 	getDisplayName() {
 		return this.displayName;
 	}
+	get imageSlideAvailable() {
+		if (!this?.images) return false;
+		return (this.images.length > 1);
+	}
 	async activate(word, trendObject) {
 		this.id = word;
 		this.displayName = trendObject.nickname || word.toLowerCase();
 		const images = Array.isArray(trendObject.url) ? trendObject.url : [trendObject.url];
-		let firstImageFilled = false;
-		for (const img of images) {
-			const imageValid = (await this.game.imageValidator.isValid(img));
-			if (!imageValid) continue;
-			if (!firstImageFilled) {
-				this.elements.image1.style.backgroundImage = `url("${img}")`;
-				firstImageFilled = true;
-			}
-			else {
-				this.image2 = true;
-				this.elements.image2.style.backgroundImage = `url("${img}")`;
-			}
-		}
+
+		this.images = [...images]; // all valid image URLs
+		// Load first two slots upfront
+		this.nextImageIndex = this.images.length > 1 ? 1 : null;
+
+		if (this.images[0]) this.elements.imageA.style.backgroundImage = `url("${this.images[0]}")`;
+		if (this.nextImageIndex) this.elements.imageB.style.backgroundImage = `url("${this.images[this.nextImageIndex]}")`;
+
 		if (trendObject.views) {
 			this.views = trendObject.views;
 			this.elements.number.textContent = trendObject.views;
@@ -165,24 +163,24 @@ export class Cell {
 	setBackColor(color) {
 		this.elements.labelBg.style.backgroundColor = color;
 	}
-	slideImages() {
-		if (!this.image2) return;
-		this.elements.imageContainer.classList.add('show-second');
-	}
-
-	reverseImages() {
-		if (!this.image2) return;
+	async slideImages() {
+		if (this.images.length < 2) return;
 		const container = this.elements.imageContainer;
-		const img1 = this.elements.image1.style.backgroundImage;
-		const img2 = this.elements.image2.style.backgroundImage;
 
-		// Copy image2's source into image1
-		this.elements.image1.style.backgroundImage = img2;
+		container.classList.add('show-second');
+		await new Promise(resolve => setTimeout(resolve, 1020));
+
+		this.nextImageIndex = (this.nextImageIndex + 1) % this.images.length;
+		const imgA = this.elements.imageB.style.backgroundImage;
+		const imgB = `url("${this.images[this.nextImageIndex]}"`;
+		
+		// Copy imageB's source into imageA
+		this.elements.imageA.style.backgroundImage = imgA;
 
 		// Disable transition, snap back to start position
 		container.style.transition = 'none';
 		container.classList.remove('show-second');
-		this.elements.image2.style.backgroundImage = img1;
+		this.elements.imageB.style.backgroundImage = imgB;
 
 		// Force reflow so the browser registers the change before re-enabling transition
 		container.offsetHeight;
@@ -212,7 +210,6 @@ export class Cell {
 			easing: 'linear',
 		});
 	}
-	// In Cell class:
 	showBackground() {
 		const animation = Config.animation.slide.right;
 		const anim = this.elements.labelBg.animate(animation.keyframes, animation.options);

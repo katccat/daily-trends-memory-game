@@ -17,7 +17,7 @@ export const Config = {
 	funColorChance: 0,
 	funGlyphChance: 0.1,
 	maxLives: 3,
-	milestones: [10, 25, 50, 75, 100, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000],
+	milestones: [25, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000],
 	scoreRounding: 1,
 	deferViewedTrends: false,
 	colors: [
@@ -33,13 +33,13 @@ export const Config = {
 		'rgba(52, 168, 83, 0.67)',
 	],
 	messages: {
-		intro: ["I'm feeling lucky"],
-		victory: ["I'm not a robot.", "Great!", "Amazing!", "Fantastic!"],
-		perfect: ['Perfect!', "I'm feeling lucky"],
+		intro: ["I'm feeling lucky", "I'm feeling lucky", "I'm feeling lucky", "Safe search: off"],
+		victory: ["I'm not a robot.", "Great!", "Amazing!", "Fantastic!", "Did you mean: win?"],
+		perfect: ['Perfect!', "I'm feeling lucky", "Did you mean: win?", "404: Mistake not found", "Zero errors. Zero."],
 		nearmiss: ["Phew!", "Close!"],
 		failure: ["Aw, snap!", "That's an error.", "Please try again.", "Only human!"],
-		gameover: ["Game over!"],
-		end: ["OMG 100%!", "You ARE a robot!"],
+		gameover: ["Game over!", "ERR_GAME_OVER"],
+		end: ["OMG 100%!", "You ARE a robot!", "All systems go!", "You have been: verified"],
 	},
 	glyphs: [
 		"images/download_arrow.png",
