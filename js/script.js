@@ -274,7 +274,7 @@ class Game {
 	selectBoard = function () {
 		const board = this.state.level <= this.boards.length - 1
 			? this.boards[this.state.level]
-			: BoardCreator.createBoard(this.state.level);
+			: BoardCreator.createBoard(this.state.level, this.memory.challengeMode);
 		if (board.cellCount < 4 || board.cellCount % 2 !== 0) {
 			console.error("Please provide an even cell count greater than or equal to 4.");
 			return;

@@ -29,7 +29,7 @@ export class BoardCreator {
 	static levels = Config.difficulty;
 	static giveLifeThreshold = 8;
 	static previous = { level: null, board: null };
-	static createBoard(level) {
+	static createBoard(level, challengeMode = false) {
 		let cellCount, category, allowRecycleWords;
 
 		{
@@ -55,11 +55,12 @@ export class BoardCreator {
 		
 		const board = new Board(cellCount, category);
 		board.allowRecycleWords = allowRecycleWords;
+		const give = challengeMode ? 1 : 0;
 		if (cellCount > 18) {
-			board.additionalMistakes = 2;
+			board.additionalMistakes = 2 + give;
 		}
 		else if (cellCount > 14) {
-			board.additionalMistakes = 1;
+			board.additionalMistakes = 1 + give;
 		}
 
 		if (cellCount >= BoardCreator.giveLifeThreshold) {
