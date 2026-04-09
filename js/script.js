@@ -249,8 +249,10 @@ class Game {
 		const gameOver = this.state.lives <= 0;
 		if (!this.memory.score.won) {
 			const removeNum = gameOver ? Config.removeAmountWhenGameOver : Config.removeAmountWhenLose;
-			this.trendSelector.removeTrends(removeNum);
-			await this.updateScore(this.trendSelector.getScore(), true);
+			if (removeNum > 0) {
+				this.trendSelector.removeTrends(removeNum);
+				await this.updateScore(this.trendSelector.getScore(), true);
+			}
 		}
 		await new Promise(resolve => setTimeout(resolve, Config.delay.loseTransition));
 

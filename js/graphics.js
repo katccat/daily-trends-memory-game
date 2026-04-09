@@ -76,7 +76,7 @@ Graphics.faceChanger = function(game) {
 		}
 		else if (avoidable > 0) {
 			countedMistakes++;
-			const index = Math.max(Math.min(countedMistakes - 1, faceImages.firstTrack.length), 0);
+			const index = Math.max(Math.min(countedMistakes - 1, faceImages.firstTrack.length - 1), 0);
 			currentFace = faceImages.firstTrack[index];
 		}
 
@@ -163,7 +163,7 @@ Graphics.PercentScorer = function (score) {
 			scoreDisplay.classList.add('enlarge');
 			intervalId = setInterval(() => {
 				current += step;
-				displayScore(current.toFixed(rounding));
+				displayScore(Math.abs(current).toFixed(rounding));
 				const isComplete = step > 0
 					? parseFloat(current.toFixed(rounding)) >= displayEnd
 					: parseFloat(current.toFixed(rounding)) <= displayEnd;

@@ -11,7 +11,7 @@ export const Config = {
 		resolveTyping: 1000,
 		loseTransition: 1000,
 	},
-	removeAmountWhenLose: 2,
+	removeAmountWhenLose: 0,
 	removeAmountWhenGameOver: 12,
 	trendData: {},
 	funColorChance: 0,
