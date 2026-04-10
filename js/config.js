@@ -7,7 +7,7 @@ export const Config = {
 		fade: 700,
 		showContinuePrompt: 0,
 		changeCellLabel: 4000,
-		changeCellImage: 1000,
+		changeCellImage: 1500,
 		resolveTyping: 1000,
 		loseTransition: 1000,
 	},

@@ -23,10 +23,7 @@ export function CellLoopScheduler() {
 					const randomDelay = Math.random() * 2000;
 					await new Promise(r => setTimeout(r, delay + randomDelay))
 				};
-				if (!playing || cellLoops.length === 0) {
-					this.stop();
-					break;
-				}
+				if (!playing) break;
 				loopIndex = loopIndex % cellLoops.length;
 				success = await this.slideImages(loopIndex);
 				loopIndex++;
@@ -36,6 +33,7 @@ export function CellLoopScheduler() {
 	this.stop = function () {
 		playing = false
 		cellLoops.length = 0;
+		this.hideViews();
 	};
 	this.slideImages = async function (index) {
 		return await cellLoops[index].slideImages();
@@ -48,12 +46,12 @@ export function CellLoopScheduler() {
 		this.showViews();
 		(async () => {
 			const delay = Config.delay.changeCellLabel;
-			while (playing && cellLoops.length > 0) {
+			while (playing) {
 				await new Promise(r => setTimeout(r, delay));
-				if (!playing || cellLoops.length === 0) break;
+				if (!playing) break;
 				this.hideViews();
 				await new Promise(r => setTimeout(r, delay));
-				if (!playing || cellLoops.length === 0) break;
+				if (!playing) break;
 				this.showViews();
 			}
 		})();
@@ -62,7 +60,8 @@ export function CellLoopScheduler() {
 
 export class CellSolvedLoop {
 	constructor(...cells) {
-		let typingResolver;
+		let backgroundResolver, typingResolver;
+		this.backgroundVisible = new Promise(r => backgroundResolver = r);
 		this.typingDone = new Promise(r => typingResolver = r);
 		this.imageSlideAvailable = cells[0].imageSlideAvailable;
 
@@ -77,12 +76,14 @@ export class CellSolvedLoop {
 
 		this.slideImages = async function () {
 			if (!this.imageSlideAvailable) return false;
+			await this.backgroundVisible;
 			await this.typingDone;
 			cells.forEach(cell => cell.slideImages());
 			return true;
 		}
 		this.start = async function () {
-			await Promise.all(cells.map(cell => cell.showBackground()));
+			Promise.all(cells.map(cell => cell.showBackground())).then(() => backgroundResolver());
+			await new Promise(r => setTimeout(r, 500));
 			await Graphics.typeText(text, 90, ...labelElements);
 			await new Promise(r => setTimeout(r, Config.delay.resolveTyping));
 			typingResolver();
