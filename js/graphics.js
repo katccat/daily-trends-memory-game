@@ -40,12 +40,12 @@ Graphics.faceChanger = function(game) {
 				{ src: 'images/faces/7a.png' },
 			],
 			strike2: [
-				{ src: 'images/faces/4b.gif' }, //i0 r1
-				{ src: 'images/faces/5b.gif' }, //i1 r0
-				{ src: 'images/faces/7b.png' }, //i2 r-1
+				{ src: 'images/faces/4b.gif' },
+				{ src: 'images/faces/5b.gif' },
+				{ src: 'images/faces/7b.png' },
 			],
 		},
-		default: { src: 'images/faces/default.png', threshold: 0 },
+		default: { src: 'images/faces/1.png', threshold: 0 },
 		start: [
 			{ src: 'images/faces/trophy_resized.gif', fx: fx.brokenGlasses, threshold: 100 },
 			{ src: 'images/faces/special3.gif', fx: fx.brokenGlasses, threshold: 90 },

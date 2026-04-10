@@ -34,7 +34,7 @@ export const Config = {
 	],
 	messages: {
 		intro: ["I'm feeling lucky", "I'm feeling lucky", "I'm feeling lucky", "Safe search: off"],
-		victory: ["I'm not a robot.", "Great!", "Amazing!", "Fantastic!", "Did you mean: win?"],
+		victory: ["I'm not a robot.", "Great!", "Amazing!", "Fantastic!"],
 		perfect: ['Perfect!', "I'm feeling lucky", "Did you mean: win?", "404: Mistake not found", "Zero errors. Zero."],
 		nearmiss: ["Phew!", "Close!"],
 		failure: ["Aw, snap!", "That's an error.", "Please try again.", "Only human!"],
