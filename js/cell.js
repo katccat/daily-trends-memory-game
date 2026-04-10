@@ -15,8 +15,7 @@ export class Cell {
 		this.labelLines;
 		this.usedTrend;
 		this.views;
-		this.bespoke = false;
-		this.bespokePlaying = false;
+		this.special = false;
 		this.transitioning;
 		this.elements = {};
 
@@ -107,7 +106,7 @@ export class Cell {
 			this.views = 0;
 			this.elements.number.textContent = '+1';
 		}
-		if (trendObject.special) this.bespoke = true;
+		if (trendObject.special) this.special = true;
 	}
 	reveal() {
 		this.state = Cell.State.DEFAULT;
@@ -188,7 +187,6 @@ export class Cell {
 		container.style.transition = '';
 	}
 	setBespoke() {
-		this.bespokePlaying = true;
 		const element = this.elements.labelBg;
 		const current = getComputedStyle(element).backgroundColor;
 		const colors = [...Config.darkColors];
@@ -215,14 +213,5 @@ export class Cell {
 		const anim = this.elements.labelBg.animate(animation.keyframes, animation.options);
 		this.elements.labelBg.classList.add('fade-in');
 		return anim.finished;
-	}
-	showViews() {
-		if (!this.bespokePlaying && this.bespoke) this.setBespoke();
-		this.elements.number.classList.add('fade-in');
-		this.elements.label.classList.add('fade-out');
-	}
-	hideViews() {
-		this.elements.number.classList.remove('fade-in');
-		this.elements.label.classList.remove('fade-out');
 	}
 }

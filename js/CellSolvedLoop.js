@@ -43,6 +43,7 @@ export function CellLoopScheduler() {
 	
 	this.endScreen = async function () {
 		await Promise.all(cellLoops.map(loop => loop.typingDone));
+		cellLoops.forEach(loop => loop.setBespoke());
 		this.showViews();
 		(async () => {
 			const delay = Config.delay.changeCellLabel;
@@ -74,6 +75,11 @@ export class CellSolvedLoop {
 		cells[0].destroyLabelBuffer();
 		labelElements.forEach(e => e.style.fontSize = fontSize);
 
+		this.setBespoke = function () {
+			cells.forEach(cell => {
+				if (cell.special) cell.setBespoke();
+			})
+		}
 		this.slideImages = async function () {
 			if (!this.imageSlideAvailable) return false;
 			await this.backgroundVisible;
