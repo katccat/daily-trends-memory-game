@@ -1,6 +1,7 @@
 import { Config } from './config.js';
 import { fitFontSize } from './utils.js';
 import { Graphics } from './graphics.js';
+import { Elements } from './graphics.js';
 
 export function CellLoopScheduler() {
 	const cellLoops = [];
@@ -39,23 +40,21 @@ export function CellLoopScheduler() {
 	this.slideImages = async function (index) {
 		return await cellLoops[index].slideImages();
 	}
-	this.showViews = () => cellLoops.forEach(cellLoop => cellLoop.showViews());
-	this.hideViews = () => cellLoops.forEach(cellLoop => cellLoop.hideViews());
+	this.showViews = () => Elements.grid.classList.add('show-views');
+	this.hideViews = () => Elements.grid.classList.remove('show-views');
 	
 	this.endScreen = async function () {
 		await Promise.all(cellLoops.map(loop => loop.typingDone));
-		cellLoops.forEach(loop => {
-			loop.showViews();
-		});
+		this.showViews();
 		(async () => {
 			const delay = Config.delay.changeCellLabel;
-			while (cellLoops.length > 0) {
+			while (playing && cellLoops.length > 0) {
 				await new Promise(r => setTimeout(r, delay));
-				if (cellLoops.length < 1) break;
-				cellLoops.forEach(loop => loop.hideViews());
+				if (!playing || cellLoops.length === 0) break;
+				this.hideViews();
 				await new Promise(r => setTimeout(r, delay));
-				if (cellLoops.length < 1) break;
-				cellLoops.forEach(loop => loop.showViews());
+				if (!playing || cellLoops.length === 0) break;
+				this.showViews();
 			}
 		})();
 	}
@@ -76,8 +75,6 @@ export class CellSolvedLoop {
 		cells[0].destroyLabelBuffer();
 		labelElements.forEach(e => e.style.fontSize = fontSize);
 
-		this.showViews = () => cells.forEach(cell => cell.showViews());
-		this.hideViews = () => cells.forEach(cell => cell.hideViews());
 		this.slideImages = async function () {
 			if (!this.imageSlideAvailable) return false;
 			await this.typingDone;

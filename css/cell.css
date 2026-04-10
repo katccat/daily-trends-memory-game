@@ -10,15 +10,9 @@
 /* --- Outer Wrapper --- */
 .cell-wrapper {
 	position: relative;
-	/*top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	transform-origin: 0% 0%;*/
-
 	display: flex;
 	align-items: flex-end;
 	justify-content: center;
-
 	width: 100%;
 	height: 100%;
 	container-type: size;
@@ -226,4 +220,10 @@
 	color: var(--text-color);
 	pointer-events: none;
 	transition: opacity 0.8s linear;
+}
+#grid.show-views .cell-number {
+	opacity: 1 !important;
+}
+#grid.show-views .cell-label {
+	opacity: 0 !important;
 }
