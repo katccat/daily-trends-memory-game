@@ -42,6 +42,7 @@ export function CellLoopScheduler() {
 	this.hideViews = () => Elements.grid.classList.remove('show-views');
 	
 	this.endScreen = async function () {
+		playing = true;
 		await Promise.all(cellLoops.map(loop => loop.typingDone));
 		cellLoops.forEach(loop => loop.setBespoke());
 		this.showViews();
