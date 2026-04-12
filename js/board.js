@@ -3,13 +3,10 @@ import { randomItem } from './utils.js';
 import { isPhone } from './utils.js';
 
 export class Board {
-	constructor(cellCount, images, additionalMistakes = 0, giveLife = false) {
+	constructor(cellCount, additionalMistakes = 0) {
 		this.cellCount = cellCount;
-		this.images = images;
 		this.additionalMistakes = additionalMistakes;
-		this.giveLife = giveLife;
-		this.funColorChance = Config.funColorChance;
-		this.allowRecycleWords = false;
+		this.giveLife = true;
 	}
 }
 
@@ -26,10 +23,9 @@ export class BoardCreator {
 			hard: [20, 20],
 		}
 	};
-	static giveLifeThreshold = 0;
 	static previous = { level: null, board: null };
 	static createBoard(level, challengeMode = false) {
-		let cellCount, category, allowRecycleWords;
+		let cellCount, additionalMistakes;
 
 		{
 			const difficulty = Config.difficulty;
@@ -50,22 +46,17 @@ export class BoardCreator {
 			else cellCount = randomItem(cellCounts);
 		}
 
-		category = Config.trendData.trends;
-		allowRecycleWords = false;
+		{
+			const give = challengeMode ? 1 : 0;
+			if (cellCount > 18 || (cellCount > 16 && isPhone())) {
+				additionalMistakes = 2 + give;
+			}
+			else if (cellCount > 14) {
+				additionalMistakes = 1 + give;
+			}
+		}
 		
-		const board = new Board(cellCount, category);
-		board.allowRecycleWords = allowRecycleWords;
-		const give = challengeMode ? 1 : 0;
-		if (cellCount > 18 || (cellCount > 16 && isPhone())) {
-			board.additionalMistakes = 2 + give;
-		}
-		else if (cellCount > 14) {
-			board.additionalMistakes = 1 + give;
-		}
-
-		if (cellCount >= BoardCreator.giveLifeThreshold) {
-			board.giveLife = true;
-		}
+		const board = new Board(cellCount, additionalMistakes);
 		BoardCreator.previous.board = board;
 		BoardCreator.previous.level = level;
 		return board;

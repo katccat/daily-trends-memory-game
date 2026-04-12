@@ -132,20 +132,19 @@ Graphics.PercentScorer = function (score) {
 	const scoreDisplay = Elements.scoreDisplay;
 	const rounding = Config.scoreRounding;
 	const delay = 80;
-	let lastScore = score;
 	let intervalId = null;
 
 	const percentScore = function (score) {
 		return parseFloat((score.num / score.denominator * 100).toFixed(rounding));
 	};
 	const displayScore = function (formattedScore) {
+		scoreDisplay.classList.add('visible');
 		scoreDisplay.textContent = formattedScore + "%";
 	};
 
-	this.interpolateScore = async function (newScore) {
-		const displayStart = percentScore(lastScore);
+	this.interpolateScore = async function (oldScore, newScore) {
+		const displayStart = percentScore(oldScore);
 		const displayEnd = percentScore(newScore);
-		lastScore = newScore;
 		if (displayStart === displayEnd) {
 			scoreDisplay.classList.add('enlarge');
 			setTimeout(() => {
@@ -182,7 +181,6 @@ Graphics.PercentScorer = function (score) {
 		if (intervalId) clearInterval(intervalId);
 		intervalId = null;
 		scoreDisplay.classList.remove('enlarge');
-		lastScore = score;
 		displayScore(percentScore(score).toFixed(rounding));
 	};
 };

@@ -1,8 +1,13 @@
 import { Elements } from './graphics.js';
 import { randomItem, shuffle } from './utils.js';
 export const Config = {
-	BACKEND: 'https://backend.clayrobot.net/memorygame',
-	FALLBACK: 'https://backend.clayrobot.net/memorygame/fallback',
+	BACKEND: 'https://backend.clayrobot.net/memorygame/',
+	ENDPOINT: {
+		TODAY: 'today',
+		FALLBACK: 'fallback',
+		INDEX: 'index',
+	},
+	OFFLINE_FALLBACK: '/words/offline.json',
 	delay: {
 		fade: 700,
 		showContinuePrompt: 0,
@@ -153,28 +158,3 @@ Config.getIntroMessage = function () {
 		return shuffle(words);
 	}
 }
-
-Config.getCategories = async function() {
-	try {
-		this.trendData = await fetch(Config.BACKEND).then(res => {
-			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-			return res.json();
-		}).then(trendData => {
-			if (trendData.count < 1) throw new Error(`No trends found in ${Config.BACKEND}`);
-			return trendData;
-		});
-	} catch (err) {
-		try {
-			this.trendData = await fetch(Config.FALLBACK).then(res => {
-				if (!res.ok) throw new Error(`HTTP ${res.status}`);
-				return res.json();
-			}).then(trendData => {
-				if (trendData.count < 1) throw new Error(`No trends found in ${Config.FALLBACK}`);
-				return trendData;
-			});
-		} catch (err) {
-			console.warn('Failed to fetch remote index, falling back to local:', err.message);
-			this.trendData = await fetch('/words/fallback.json').then(res => res.json());
-		}
-	}
-};

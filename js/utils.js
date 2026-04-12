@@ -6,6 +6,12 @@ export const ImageValidator = function () {
 	let validatedImages = new Set();
 	let invalidatedImages = new Set();
 
+	const saved = JSON.parse(localStorage.getItem('images'));
+	if (saved) {
+		validatedImages = new Set(saved.valid);
+		invalidatedImages = new Set(saved.invalid);
+	}
+
 	const validateImage = async function (url) {
 		if (!url) return false;
 
@@ -54,13 +60,6 @@ export const ImageValidator = function () {
 
 			img.src = url;
 		});
-	};
-
-	this.restore = function (saved) {
-		if (saved) {
-			validatedImages = new Set(saved.valid);
-			invalidatedImages = new Set(saved.invalid);
-		}
 	};
 	this.isValid = async function (url, ignoreStorage = false) {
 		if (!ignoreStorage) {
