@@ -59,8 +59,7 @@ export class BoardCreator {
 			}
 		}
 		else {
-			if (cellCount > 8) additionalMistakes = 2;
-			else additionalMistakes = 1;
+			if (cellCount > 8) additionalMistakes = 1;
 		}
 		
 		const board = new Board(cellCount, additionalMistakes);
