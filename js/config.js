@@ -11,7 +11,7 @@ export const Config = {
 	delay: {
 		fade: 700,
 		showContinuePrompt: 0,
-		changeCellLabel: 4000,
+		changeCellLabel: 5000,
 		changeCellImage: 1500,
 		resolveTyping: 1000,
 		loseTransition: 1000,
@@ -38,13 +38,16 @@ export const Config = {
 		'rgba(52, 168, 83, 0.67)',
 	],
 	messages: {
-		intro: ["I'm feeling lucky", "I'm feeling lucky", "I'm feeling lucky", "Safe search: off"],
+		intro: {
+			normal: ["I'm not a robot."],
+			challenge: ["Safe search: off"],
+		},
 		victory: ["I'm not a robot.", "Great!", "Amazing!", "Fantastic!"],
 		perfect: ['Perfect!', "I'm feeling lucky", "Did you mean: win?", "404: Mistake not found", "Zero errors. Zero."],
 		nearmiss: ["Phew!", "Close!"],
 		failure: ["Aw, snap!", "That's an error.", "Please try again.", "Only human!"],
 		gameover: ["Game over!", "ERR_GAME_OVER"],
-		end: ["OMG 100%!", "You ARE a robot!", "All systems go!", "You have been: verified"],
+		end: ["OMG 100%!", "You ARE a robot!", "All systems go!"],
 	},
 	glyphs: [
 		"images/download_arrow.png",
@@ -57,10 +60,6 @@ export const Config = {
 		"images/contact.png",
 	],
 	introMessage: [
-		{
-			words: [["I'm", "not", "a", "robot"]],
-			shuffle: false,
-		},
 		{
 			words: [
 				["tap", "to", "find", "matches"], 

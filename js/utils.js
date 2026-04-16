@@ -1,15 +1,29 @@
+import { Config } from './config.js';
 export function randomItem(list) {
 	return list[Math.floor(Math.random() * list.length)];
 }
 
+export function percentScoreFloat(score) {
+	const num = score?.num;
+	const denominator = score?.denominator ? score.denominator : 1;
+	return parseFloat((num / denominator * 100).toFixed(Config.scoreRounding));
+};
+export function percentScoreString(score) {
+	const num = score?.num;
+	const denominator = score?.denominator ? score.denominator : 1;
+	return (num / denominator * 100).toFixed(Config.scoreRounding);
+};
+
 export const ImageValidator = function () {
-	let validatedImages = new Set();
-	let invalidatedImages = new Set();
+	// Map of url -> boolean (true = valid, false = invalid), insertion-ordered for eviction
+	let imageCache = new Map();
+	const MAX_ENTRIES = 1000;
 
 	const saved = JSON.parse(localStorage.getItem('images'));
 	if (saved) {
-		validatedImages = new Set(saved.valid);
-		invalidatedImages = new Set(saved.invalid);
+		for (const [url, valid] of Object.entries(saved)) {
+			imageCache.set(url, valid);
+		}
 	}
 
 	const validateImage = async function (url) {
@@ -62,22 +76,19 @@ export const ImageValidator = function () {
 		});
 	};
 	this.isValid = async function (url, ignoreStorage = false) {
-		if (!ignoreStorage) {
-			if (invalidatedImages.has(url)) return false;
-			if (validatedImages.has(url)) return true;
+		if (!ignoreStorage && imageCache.has(url)) {
+			return imageCache.get(url);
 		}
 		const valid = await validateImage(url);
-		if (valid) validatedImages.add(url);
-		else invalidatedImages.add(url);
+		if (imageCache.size >= MAX_ENTRIES) {
+			imageCache.delete(imageCache.keys().next().value);
+		}
+		imageCache.set(url, valid);
 		this.saveData();
 		return valid;
 	};
 	this.saveData = function() {
-		const data = {
-			valid: [...validatedImages],
-			invalid: [...invalidatedImages],
-		};
-		localStorage.setItem('images', JSON.stringify(data));
+		localStorage.setItem('images', JSON.stringify(Object.fromEntries(imageCache)));
 	}
 };
 

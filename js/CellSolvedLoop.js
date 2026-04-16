@@ -21,7 +21,7 @@ export function CellLoopScheduler() {
 			while (playing) {
 				if (success) {
 					const randomDelay = Math.random() * 2000;
-					await new Promise(r => setTimeout(r, delay + randomDelay))
+					await new Promise(r => setTimeout(r, delay + randomDelay));
 				};
 				if (!playing) break;
 				loopIndex = loopIndex % cellLoops.length;

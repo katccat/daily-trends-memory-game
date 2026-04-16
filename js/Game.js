@@ -9,15 +9,22 @@ import { randomItem, shuffle } from './utils.js';
 import { CellLoopScheduler } from './CellSolvedLoop.js';
 import { TrendSelector } from './TrendSelector.js';
 import { handleClick } from './handleClick.js';
+import { PixelTransition } from './PixelTransition.js';
 
 export class Game {
-	constructor(trendData) {
+	constructor(trendData, challengeMode = false) {
 		this.trendData = trendData;
 		this.gameDate = trendData.fetchedDate;
+		this.saveProgress = true;
+		this.challengeMode = challengeMode;
+		if (this.challengeMode) Elements.tooltip.classList.add('red');
+		else Elements.tooltip.classList.remove('red');
 		this.state = {
 			coolDown: false,
 			cellsFading: false,
 			firstRun: true,
+			previousLevel: -1,
+			score: { num: 0, denominator: 1 },
 			refresh() {
 				this.cells = [];
 				this.solvedCells = [];
@@ -37,22 +44,17 @@ export class Game {
 		};
 		this.state.refresh();
 		this.state.reset();
-		this.memory = {
-			previousLevel: -1,
-			score: {num: 0, denominator: 1},
-			saveProgress: true,
-			challengeMode: false,
-		};
-
-		this.boards = [
-			new Board(4, 0),
-			new Board(8, 1),
-		];
+		this.boards = [];
+		
+		if (this.challengeMode) this.boards.push(new Board(4, 1));
+		else this.boards.push(new Board(4, 0), new Board(8, 0));
+		
 		this.gridLayout = new GridLayout(Elements);
 		this.faceChanger = new Graphics.faceChanger(this);
 		this.trendSelector = new TrendSelector(trendData, this);
-		this.percentScorer = new Graphics.PercentScorer(this.memory.score);
+		this.percentScorer = new Graphics.PercentScorer(this.state.score);
 		this.cellLoopScheduler = new CellLoopScheduler();
+		this.pixelTransition = new PixelTransition();
 		this.colorSequencerDark = new Graphics.colorSequencer(Config.darkColors);
 		this.colorSequencerLight = new Graphics.colorSequencer(Config.colors);
 		this.restore();
@@ -66,10 +68,19 @@ export class Game {
 	restore = function() {
 		const date = this.gameDate;
 		if (!date) {
-			this.memory.saveProgress = false;
+			this.saveProgress = false;
 			return;
 		}
-		const savedData = JSON.parse(localStorage.getItem(this.gameDate));
+		const dateEntry = JSON.parse(localStorage.getItem(this.gameDate));
+		let savedData;
+		if (dateEntry) {
+			if (this.challengeMode) {
+				savedData = dateEntry.challenge;
+			} else {
+				// fall back to top-level dateEntry if normal sub-object doesn't exist (backward compat)
+				savedData = dateEntry.normal ?? dateEntry;
+			}
+		}
 		let trendKeysRestored;
 		if (savedData) {
 			try {
@@ -81,7 +92,7 @@ export class Game {
 			}
 			try {
 				const saved = savedData.score;
-				if (saved) this.memory.score = saved;
+				if (saved) this.state.score = saved;
 			} catch { }
 			if (!trendKeysRestored) return;
 			try {
@@ -94,7 +105,7 @@ export class Game {
 			} catch { }
 		}
 		this.updateScore(this.trendSelector.getScore(), false);
-		this.memory.saveProgress = true;
+		this.saveProgress = true;
 	}
 	createCells = function (numCells) {
 		const fragment = document.createDocumentFragment();
@@ -122,7 +133,7 @@ export class Game {
 		}
 		Elements.grid.appendChild(fragment);
 	};
-	activateCells = async function (board) {
+	activateCells = async function (board, animate = true) {
 		let cellsCopy = [...this.state.cells];
 		let activatedCells = [];
 		// pick all of the pictures that will be given to cells
@@ -131,13 +142,13 @@ export class Game {
 		for (let i = 0; i < randomTrendKeys.length; i++) {
 			const {key, usedTrend} = randomTrendKeys[i];
 			const trendObject = this.trendData.trends[key];
-			if (!this.memory.challengeMode) shuffle(trendObject.url);
+			if (!this.challengeMode) shuffle(trendObject.url);
 			const images = [...trendObject.url];
 			const cellPair = [];
 			for (let j = 0; j < 2; j++) {
 				const index = Math.floor(Math.random() * cellsCopy.length);
 				const cell = cellsCopy.splice(index, 1)[0];
-				if (this.memory.challengeMode && images.length > 0) {
+				if (this.challengeMode && images.length > 0) {
 					const imageIndex = Math.floor(Math.random() * images.length);
 					const url = images.splice(imageIndex, 1);
 					cell.activate(key, {...trendObject, url: url});
@@ -148,14 +159,16 @@ export class Game {
 				activatedCells.push(cell);
 			}
 			const color = this.colorSequencerDark.nextColor();
-			cellPair[0].setBackColor(color);
-			cellPair[1].setBackColor(color);
+			cellPair.forEach(cell => {
+				cell.setBackColor(color);
+				if (!animate) cell.reveal();
+			});
 		}
 		//
 		this.state.unsolvedCells = activatedCells.length;
 		this.state.remainingMistakes = activatedCells.length / 2 - 1 + board.additionalMistakes;
+		if (!animate) return;
 		// reveals the cells in random order
-		cellsCopy = [...this.state.cells];
 		let delay = 300;
 		while (activatedCells.length > 0) {
 			const index = Math.floor(Math.random() * activatedCells.length);
@@ -177,25 +190,26 @@ export class Game {
 
 		if (cells.length < 1) return;
 
-		const numCells = cells.length;
+		if (victory) {
+			const numCells = cells.length;
 
-		let totalDuration; // ms — tune this one variable
-		let delayStep = 1.2;
+			let totalDuration; // ms — tune this one variable
+			let delayStep = 1.2;
 
-		if (!victory) totalDuration = 1000;
-		else if (numCells <= 8) totalDuration = 2000;
-		else if (numCells <= 12) totalDuration = 3000;
-		else totalDuration = 4000;
+			if (numCells <= 8) totalDuration = 2000;
+			else if (numCells <= 12) totalDuration = 3000;
+			else totalDuration = 4000;
 
-		// Solve for initialDelay so the sequence sums to totalDuration
-		const initialDelay = totalDuration * (delayStep - 1) / (Math.pow(delayStep, numCells) - 1);
-		let currentDelay = initialDelay;
-		for (const cell of cells) {
-			cell.fade();
-			await new Promise(resolve => setTimeout(resolve, currentDelay));
-			currentDelay *= delayStep;
+			// Solve for initialDelay so the sequence sums to totalDuration
+			const initialDelay = totalDuration * (delayStep - 1) / (Math.pow(delayStep, numCells) - 1);
+			let currentDelay = initialDelay;
+			for (const cell of cells) {
+				cell.fade();
+				await new Promise(resolve => setTimeout(resolve, currentDelay));
+				currentDelay *= delayStep;
+			}
+			await new Promise(resolve => setTimeout(resolve, 500));
 		}
-		await new Promise(resolve => setTimeout(resolve, 500));
 		for (const cell of this.state.cells) cell.remove();
 		this.state.cells.length = 0;
 	};
@@ -236,7 +250,7 @@ export class Game {
 			level: gameOver ? 0 : this.state.level,
 			lives: gameOver ? Config.maxLives : this.state.lives,
 		});
-		if (!this.memory.score.won) {
+		if (!this.state.score.won) {
 			const removeNum = gameOver ? Config.removeAmountWhenGameOver : Config.removeAmountWhenLose;
 			if (removeNum > 0) {
 				this.trendSelector.removeTrends(removeNum);
@@ -250,20 +264,23 @@ export class Game {
 	};
 	selectMessage = function (victory) {
 		if (victory) {
-			if (this.memory.score.won && this.state.announceMilestone) return Config.messages.end;
-			if (this.state.level <= 1) return Config.messages.intro;
-			if (this.state.announceMilestone) return [`${this.memory.score.num} trends collected!`];
+			if (this.state.score.won && this.state.announceMilestone) return Config.messages.end;
+			if (this.state.level <= 0) {
+				const messages = Config.messages.intro;
+				return this.challengeMode ? messages.challenge : messages.normal;
+			}
+			if (this.state.announceMilestone) return [`${this.state.score.num} trends collected!`];
 			if (this.state.avoidableMistakes === 0) return Config.messages.perfect;
 			if (this.state.remainingMistakes === 0) return Config.messages.nearmiss;
 			return Config.messages.victory;
 		}
-		if (this.state.level < this.memory.previousLevel) return Config.messages.gameover;
+		if (this.state.level < this.state.previousLevel) return Config.messages.gameover;
 		return Config.messages.failure;
 	};
 	selectBoard = function () {
 		const board = this.state.level <= this.boards.length - 1
 			? this.boards[this.state.level]
-			: BoardCreator.createBoard(this.state.level, this.memory.challengeMode);
+			: BoardCreator.createBoard(this.state.level, this.state.lives, this.challengeMode);
 		if (board.cellCount < 4 || board.cellCount % 2 !== 0) {
 			console.error("Please provide an even cell count greater than or equal to 4.");
 			return;
@@ -271,25 +288,39 @@ export class Game {
 		return board;
 	};
 	newGame = async function (victory) {
+		this.cellLoopScheduler.stop();
 		// ── Message selection (before state resets) ──────────────────
-		let messageList = !this.state.firstRun ? this.selectMessage(victory) : null;
+		let messageList;
+		if (!this.state.firstRun || this.state.level === 0) {
+			messageList = this.selectMessage(victory || this.state.firstRun);
+		}
 		// ── Board selection ──────────────────────────────────────────
 		if (!(this.board && this.state.firstRun)) this.board = this.selectBoard();
 		if (!this.board) return;
 		const newCellCount = (this.board.cellCount !== this.state.cells.length) || this.state.firstRun;
 		// ── Begin teardown ───────────────────────────────────────────
 		//this.state.coolDown = true;
+		// On a loss, fill the pixel mosaic in simultaneously so it covers the grid as cells disappear
+		const useMosaic = (!victory && !this.state.firstRun);
+		if (useMosaic) {
+			Elements.gameContainer.classList.remove('shadow');
+			await this.pixelTransition.fillIn();
+		}
 
 		// Fade out grid and tooltip simultaneously, reset tooltip once faded
-		Elements.grid.classList.remove('active');
-		Elements.tooltip.classList.remove('active');
-		Elements.tooltip.addEventListener('transitionend', () => {
-			Graphics.resetToolTip(this, victory || this.state.firstRun);
-		}, { once: true });
-		await new Promise(r => setTimeout(r, 320));
+		if (!this.state.firstRun && victory) {
+			Elements.grid.classList.remove('active');
+			Elements.tooltip.classList.remove('active');
+			Elements.tooltip.addEventListener('transitionend', () => {
+				Graphics.resetToolTip(this, victory);
+			}, { once: true });
+		}
+		else Graphics.resetToolTip(this, true);
+		if (!useMosaic) await new Promise(r => setTimeout(r, 320));
 		// Wait for cells to finish fading out before removing them
+		
 		await this.deleteCells(victory);
-		this.cellLoopScheduler.stop();
+		
 		// ── Splash message (blocks until animation completes) ────────
 		if (messageList) await Graphics.splashText(randomItem(messageList));
 		
@@ -307,12 +338,16 @@ export class Game {
 		document.body.classList.add('active');
 
 		// ── Activate cells (animates in one by one) ──────────────────
-		await this.activateCells(this.board);
+		await this.activateCells(this.board, victory);
+
+		// ── Undo pixel mosaic, revealing the new cells ───────────────
+		if (useMosaic) await this.pixelTransition.fillOut();
+		Elements.gameContainer.classList.add('shadow');
 
 		// ── Finalise ─────────────────────────────────────────────────
 		this.state.coolDown = false;
 		this.state.firstRun = false;
-		this.memory.previousLevel = this.state.level;
+		this.state.previousLevel = this.state.level;
 		this.saveData('session', {
 			board: this.board,
 			level: this.state.level,
@@ -320,8 +355,11 @@ export class Game {
 		});
 	};
 	destroy = function () {
+		Elements.grid.classList.remove('active');
+		Elements.tooltip.classList.remove('active');
 		window.removeEventListener('resize', this._resizeHandler);
 		Elements.grid.removeEventListener('click', this._gridClickHandler);
+		this.pixelTransition.destroy();
 
 		this.cellLoopScheduler.stop();
 
@@ -336,32 +374,31 @@ export class Game {
 	};
 	
 	updateScore = async function(score, animate) {
-		const prev = {num: this.memory.score.num, denominator: this.memory.score.denominator};
-		this.memory.score.num = score.num;
-		this.memory.score.denominator = score.denominator;
+		const prev = {num: this.state.score.num, denominator: this.state.score.denominator};
+		this.state.score.num = score.num;
+		this.state.score.denominator = score.denominator;
 
-		if (this.memory.score.num >= this.memory.score.denominator) {
-			this.memory.score.won = true;
+		if (this.state.score.num >= this.state.score.denominator) {
+			this.state.score.won = true;
 		}
 		if (animate) {
-			await this.percentScorer.interpolateScore(prev, this.memory.score);
+			await this.percentScorer.interpolateScore(prev, this.state.score);
 			let crossed = false;
-			if (this.memory.score.won) {
-				crossed = prev.num < this.memory.score.num;
+			if (this.state.score.won) {
+				crossed = prev.num < this.state.score.num;
 			}
-			else crossed = Config.milestones.find(m => prev.num < m && this.memory.score.num >= m);
+			else crossed = Config.milestones.find(m => prev.num < m && this.state.score.num >= m);
 			this.state.announceMilestone = crossed;
 		}
-		this.saveData('score', this.memory.score);
+		this.saveData('score', this.state.score);
 	};
 	saveData = function(property, data) {
-		if (!this.memory.saveProgress) return;
+		if (!this.saveProgress) return;
 		const dateEntry = JSON.parse(localStorage.getItem(this.gameDate) || '{}');
-		dateEntry[property] = data;
+		const modeKey = this.challengeMode ? 'challenge' : 'normal';
+		if (!dateEntry[modeKey]) dateEntry[modeKey] = {};
+		dateEntry[modeKey][property] = data;
 		localStorage.setItem(this.gameDate, JSON.stringify(dateEntry));
-	}
-	getPercentScore = function() {
-		return parseFloat((this.memory.score.num / this.memory.score.denominator * 100).toFixed(Config.scoreRounding));
 	}
 	addLife = function () {
 		this.state.lives = Math.min(this.state.lives + 1, Config.maxLives);

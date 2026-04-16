@@ -223,9 +223,9 @@
 	pointer-events: none;
 	transition: opacity 0.8s linear;
 }
-#grid.show-views .cell-number {
+#grid.show-views /*.cell-label-bg.bespoke*/ .cell-number {
 	opacity: 1 !important;
 }
-#grid.show-views .cell-label {
+#grid.show-views /*.cell-label-bg.bespoke*/ .cell-label {
 	opacity: 0 !important;
 }

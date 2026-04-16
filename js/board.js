@@ -21,15 +21,22 @@ export class BoardCreator {
 			easy: [10, 12, 12],
 			medium: [14, 14, 18],
 			hard: [20, 20],
+		},
+		challenge: {
+			easy: [8, 10, 12],
+			medium: [14],
+			hard: [14],
 		}
 	};
 	static previous = { level: null, board: null };
-	static createBoard(level, challengeMode = false) {
+	static createBoard(level, lives, challengeMode = false) {
 		let cellCount, additionalMistakes;
 
 		{
 			const difficulty = Config.difficulty;
-			const availableCellCounts = isPhone() ? BoardCreator.cellCounts.phone : BoardCreator.cellCounts.normal;
+			let availableCellCounts;
+			if (challengeMode) availableCellCounts = BoardCreator.cellCounts.challenge;
+			else availableCellCounts = isPhone() ? BoardCreator.cellCounts.phone : BoardCreator.cellCounts.normal;
 			const cellCounts = [...availableCellCounts.easy];
 			if (level >= difficulty.medium) {
 				cellCounts.push(...availableCellCounts.medium);
@@ -37,7 +44,7 @@ export class BoardCreator {
 					cellCounts.push(...availableCellCounts.hard);
 				}
 			}
-			if (level === BoardCreator.previous.level) {
+			if (level === BoardCreator.previous.level && lives <= 1) {
 				const maxCellCount = BoardCreator.previous.board.cellCount > 14 ? BoardCreator.previous.board.cellCount : 14;
 				do {
 					cellCount = randomItem(cellCounts);
@@ -46,14 +53,17 @@ export class BoardCreator {
 			else cellCount = randomItem(cellCounts);
 		}
 
-		{
-			const give = challengeMode ? 1 : 0;
+		if (!challengeMode) {
 			if (cellCount > 18 || (cellCount > 16 && isPhone())) {
-				additionalMistakes = 2 + give;
+				additionalMistakes = 2;
 			}
 			else if (cellCount > 14) {
-				additionalMistakes = 1 + give;
+				additionalMistakes = 1;
 			}
+		}
+		else {
+			if (cellCount > 8) additionalMistakes = 3;
+			else additionalMistakes = 2;
 		}
 		
 		const board = new Board(cellCount, additionalMistakes);

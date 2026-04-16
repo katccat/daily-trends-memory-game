@@ -4,15 +4,24 @@
 
 <head>
 	<title>I'm Not A Robot</title>
+	<script>
+		(function () {
+			const theme = localStorage.getItem('pref_theme');
+			if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+		})();
+	</script>
 	<link rel="icon" type="image/png" href="favicon.png">
 	<link rel="stylesheet" href="css/reset.css">
 	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/menu.css">
+	<link rel="stylesheet" href="css/game.css">
 	<link rel="stylesheet" href="css/cell.css">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Coral+Pixels&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 	<meta name="description" content="A memory match game featuring random images from the web for the tiles!">
 </head>
@@ -22,7 +31,12 @@
 	<div id="splash-container" class="center">
 		<span id="splash-text">I'm feeling lucky</span>
 	</div>
-	<div id="grid-container">
+	<div id="menu-container">
+
+	</div>
+
+	<div id="game-container" class="shadow">
+		<div id="pixels"></div>
 		<div id="tooltip">
 			<span class="tooltip-text">
 				<span id="title">I'm not a robot</span><h1><span id="level-counter">Level  </span></h1>
@@ -42,6 +56,7 @@
 			<img id="splash-image" class="center" src="images/faces/7a.png">
 		</div>
 	</div>
+	
 	<div style="display: none;">
 		<img src="images/faces/2.png">
 		<img src="images/faces/3a.png">

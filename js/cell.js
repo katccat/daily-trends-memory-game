@@ -188,6 +188,7 @@ export class Cell {
 	}
 	setBespoke() {
 		const element = this.elements.labelBg;
+		element.classList.add('bespoke');
 		const current = getComputedStyle(element).backgroundColor;
 		const colors = [...Config.darkColors];
 		let currentIndex = 0;

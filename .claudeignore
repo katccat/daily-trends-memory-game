@@ -1,0 +1,7 @@
+/assets/
+/old/
+/anim/
+*.pages
+*.code-workspace
+manifest.json
+server.py

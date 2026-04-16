@@ -60,7 +60,7 @@ export const TrendSelector = function (trendData, game) {
 		else if (Config.deferViewedTrends) {
 			for (const trend of trendSet) this.markViewed(trend);
 		}
-		if (game.memory.saveProgress) this.saveData();
+		if (game.saveProgress) this.saveData();
 	};
 	this.removeTrends = function (amount) {
 		const usedKeys = [...keys.used];
@@ -71,7 +71,7 @@ export const TrendSelector = function (trendData, game) {
 			const key = usedKeys.splice(index, 1)[0];
 			moveKey(key, keys.used, destinationSet);
 		}
-		if (game.memory.saveProgress) this.saveData();
+		if (game.saveProgress) this.saveData();
 	}
 	this.getRandomTrendKeys = async function (amount) {
 		const randomTrendKeys = [];
@@ -117,7 +117,7 @@ export const TrendSelector = function (trendData, game) {
 			const validUrls = validationResults.filter(r => r.isValid).map(r => r.url);
 			trendObject.url = validUrls;
 
-			const isViable = game.memory.challengeMode ? validUrls.length >= 2 : validUrls.length > 0;
+			const isViable = game.challengeMode ? validUrls.length >= 2 : validUrls.length > 0;
 			if (!isViable) {
 				markUnusable(key);
 				return null;

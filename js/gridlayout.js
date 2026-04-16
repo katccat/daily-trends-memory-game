@@ -45,9 +45,9 @@ export function GridLayout(elements) {
 	}
 	this.resizeGrid = () => {
 		const tooltip = elements.tooltip;
-		const gridContainer = elements.gridContainer;
+		const gameContainer = elements.gameContainer;
 		const root = document.documentElement;
-		const viewportWidth = gridContainer.getBoundingClientRect().width;
+		const viewportWidth = gameContainer.getBoundingClientRect().width;
 		const viewportHeight = window.innerHeight - tooltip.getBoundingClientRect().height;
 		const viewportAspectRatio = viewportWidth / viewportHeight;
 		const [columns, rows] = this.findBestDimensions(viewportWidth / viewportHeight);

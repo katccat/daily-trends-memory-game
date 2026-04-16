@@ -1,9 +1,6 @@
 /assets/
 /old/
 /anim/
-/words/texts/
-/words/corpora/
-/words/word-lists/
 __pycache__/
 google-key.txt
 .DS_Store

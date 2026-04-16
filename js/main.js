@@ -1,44 +1,90 @@
 import { Config } from './config.js';
 import { Game } from './Game.js';
 import { ImageValidator } from './utils.js';
+import { Menu } from './Menu.js';
 
 export const imageValidator = new ImageValidator();
 
-async function init() {
-
-	const index = await getIndex();
-	const date = index['2026/04/05'];
-	
-	let trendData;
-	try {
-		trendData = await getTrendSet(Config.ENDPOINT.TODAY);
-	} catch {
-		try {
-			trendData = await getTrendSet(Config.ENDPOINT.FALLBACK);
-		}
-		catch {
-			trendData = getTrendSet(Config.OFFLINE_FALLBACK);
-		}
+async function init(skipMenu = false) {
+	if (skipMenu) {
+		const trendData = await getTrendSet(Config.ENDPOINT.TODAY);
+		const game = new Game(trendData, false);
+		globalThis.game = game;
+		game.newGame();
+		return;
 	}
-	const game = new Game(trendData);
+	let index = {};
+	try {
+		index = await getIndex();
+	} catch {}
 
-	globalThis.game = game;
-	game.newGame();
+	const menu = new Menu(index);
+	menu.show();
+
+	let currentGame = null;
+
+	menu.onStart(async ({ date, endpoint, challengeMode, restart }) => {
+		if (restart) clearSavedProgress(date, challengeMode);
+
+		let trendData;
+		try {
+			trendData = await getTrendSet(endpoint ?? Config.ENDPOINT.TODAY);
+		} catch {
+			try {
+				trendData = await getTrendSet(Config.ENDPOINT.FALLBACK);
+			} catch {
+				trendData = await getTrendSet(Config.OFFLINE_FALLBACK);
+			}
+		}
+
+		// Push a history entry so the back button returns to the menu.
+		history.pushState({ view: 'game' }, '');
+
+		await menu.hide();
+		currentGame = new Game(trendData, challengeMode);
+		globalThis.game = currentGame;
+		currentGame.newGame();
+	});
+
+	window.addEventListener('popstate', () => {
+		if (currentGame) {
+			currentGame.destroy();
+			currentGame = null;
+			globalThis.game = null;
+		}
+		menu.show();
+	});
 }
-init();
+init(false);
 
-async function getTrendSet (endpoint) {
-	if (!endpoint) return null;
+function clearSavedProgress(date, challengeMode) {
+	if (!date) return;
+	const entry = JSON.parse(localStorage.getItem(date) || '{}');
+	if (challengeMode) {
+		delete entry.challenge;
+	} else {
+		delete entry.normal;
+		// also clear old flat-format keys for backward compat
+		delete entry.trendKeys;
+		delete entry.score;
+		delete entry.session;
+	}
+	localStorage.setItem(date, JSON.stringify(entry));
+}
+
+async function getTrendSet(endpoint) {
+	if (!endpoint) throw new Error('No endpoint');
 	const trendData = await fetch(Config.BACKEND + endpoint).then(res => {
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
 		return res.json();
-	}).then(trendData => {
-		if (trendData.count < 1) throw new Error(`No trends found in ${Config.BACKEND}`);
-		return trendData;
+	}).then(data => {
+		if (data.count < 1) throw new Error(`No trends found in ${Config.BACKEND}`);
+		return data;
 	});
 	return trendData;
 }
-async function getIndex () {
+
+async function getIndex() {
 	const index = await fetch(Config.BACKEND + Config.ENDPOINT.INDEX).then(res => {
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
 		return res.json();

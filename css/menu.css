@@ -1,0 +1,303 @@
+/* === Google brand colors ================================================== */
+:root {
+	--google-blue:   #4285F4;
+	--google-red:    #EA4335;
+	--google-yellow: #FBBC05;
+	--google-green:  #34A853;
+}
+
+/* Cell color assignments */
+.menu-cell--blue   { --google-color: var(--google-blue); }
+.menu-cell--red    { --google-color: var(--google-red); }
+.menu-cell--yellow { --google-color: var(--google-yellow); }
+.menu-cell--green  { --google-color: var(--google-green); }
+
+/* Flip delays driven by visual order so the HTML stays clean */
+.menu-card > .menu-cell:nth-child(2) { --flip-delay: 0ms; }
+.menu-card > .menu-cell:nth-child(3) { --flip-delay: 120ms; }
+.menu-card > .menu-cell:nth-child(4) { --flip-delay: 240ms; }
+.menu-card > .menu-cell:nth-child(5) { --flip-delay: 360ms; }
+
+/* Material Symbols Rounded base style */
+.material-symbols-rounded {
+	font-family: 'Material Symbols Rounded';
+	font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+	font-size: 20px;
+	line-height: 1;
+	letter-spacing: normal;
+	text-transform: none;
+	display: inline-block;
+	white-space: nowrap;
+	word-wrap: normal;
+	direction: ltr;
+	flex-shrink: 0;
+	user-select: none;
+}
+
+/* === Overlay ============================================================== */
+#menu-container {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: var(--bg-color);
+	z-index: 50;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.2s ease;
+}
+
+#menu-container.active {
+	pointer-events: auto;
+}
+
+/* === Card ================================================================= */
+/* Gap between cells shows bg-color as a 2px divider line */
+.menu-card {
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	width: min(88vw, 360px);
+	background-color: var(--bg-color);
+	/* Material Design elevation ~dp4 */
+	box-shadow:
+		0 10px 20px rgba(0, 0, 0, 0.19),
+		0 6px 6px rgba(0, 0, 0, 0.23);
+}
+
+[data-theme="dark"] .menu-card {
+	box-shadow: none;
+}
+
+/* === Header (static — not a flipping cell) ================================ */
+.menu-header {
+	background-color: var(--google-blue);
+	color: white;
+	padding: 18px 20px;
+	text-align: center;
+}
+
+[data-theme="dark"] .menu-header {
+	background-color: #1a56db;
+}
+
+.menu-title {
+	font-size: 1.25rem;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+}
+
+/* === Flip cells =========================================================== */
+/*
+   Structure mirrors game cell.css:
+     .menu-cell          → wrapper (sets perspective, like .cell-wrapper)
+     .menu-cell-inner    → the flipping card (like .cell-card)
+     .menu-cell-back     → colored face, active when face-down (like .cell-front)
+     .menu-cell-front    → content face, revealed on flip  (like .cell-back)
+
+   Flip direction: rotateX(-180deg) → rotateX(0deg), matching the game.
+*/
+.menu-cell {
+	perspective: 700px;
+}
+
+.menu-cell-inner {
+	transform: rotateX(-180deg); /* start showing the colored back face */
+	transform-style: preserve-3d;
+}
+
+/* Trigger the reveal when the overlay becomes active */
+#menu-container.active .menu-cell-inner {
+	animation: menu-cell-flip 0.5s ease-out both;
+	animation-delay: var(--flip-delay, 0ms);
+}
+
+@keyframes menu-cell-flip {
+	from { transform: rotateX(-180deg); }
+	to   { transform: rotateX(0deg); }
+}
+
+.menu-cell-back,
+.menu-cell-front {
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+}
+
+/* Colored back face — only seen during the flip animation */
+.menu-cell-back {
+	position: absolute;
+	inset: 0;
+	background-color: var(--google-color);
+	/* pre-rotated so it faces the viewer when inner is at rotateX(-180deg) */
+	transform: rotateX(180deg);
+}
+
+/* Content front face */
+.menu-cell-front {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	box-sizing: border-box;
+	background-color: var(--frame-color);
+	color: #202124;
+	/* Persistent accent — matches the cell's Google color */
+	border-left: 4px solid var(--google-color);
+}
+
+[data-theme="dark"] .menu-cell-front {
+	color: #e8eaed;
+}
+
+/* === Date row ============================================================= */
+.menu-date-row {
+	justify-content: center;
+	padding: 6px 8px;
+}
+
+.menu-date-label {
+	flex: 1;
+	text-align: center;
+	font-size: 0.875rem;
+	font-weight: 500;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.menu-arrow-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: inherit;
+	padding: 8px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.15s;
+	flex-shrink: 0;
+}
+
+.menu-arrow-btn:hover:not(:disabled) {
+	background-color: var(--cell-color);
+}
+
+.menu-arrow-btn:disabled {
+	opacity: 0.25;
+	cursor: default;
+}
+
+/* === Actions row ========================================================== */
+.menu-actions {
+	gap: 8px;
+	padding: 10px 12px;
+}
+
+.menu-btn {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 10px 12px;
+	border: none;
+	cursor: pointer;
+	font-family: inherit;
+	font-size: 0.875rem;
+	font-weight: 500;
+	transition: opacity 0.15s, background-color 0.15s;
+	white-space: nowrap;
+}
+
+.menu-btn:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.menu-btn .material-symbols-rounded {
+	font-size: 18px;
+}
+
+.menu-btn-primary {
+	background-color: var(--google-blue);
+	color: white;
+	/* border: 1px solid transparent; */
+}
+
+.menu-btn-primary:not(:disabled):hover {
+	opacity: 0.85;
+}
+
+.menu-btn-secondary {
+	background-color: var(--cell-color);
+	color: inherit;
+	/* border: 1px solid var(--cell-edge-color); */
+}
+
+.menu-btn-secondary:not(:disabled):hover {
+	background-color: var(--cell-edge-color);
+}
+
+/* Icon-only variant — shrinks to fit the glyph */
+.menu-btn.menu-btn-icon {
+	flex: 0 0 auto;
+	padding: 10px 13px;
+}
+
+/* === Toggle rows ========================================================== */
+/* .menu-toggle is also .menu-cell-front (a <button> element) */
+.menu-toggle {
+	gap: 14px;
+	padding: 14px 16px;
+	border: none;
+	border-left: 4px solid var(--google-color);
+	cursor: pointer;
+	text-align: left;
+	font-family: inherit;
+	font-size: 0.875rem;
+	transition: background-color 0.15s;
+}
+
+.menu-toggle:hover {
+	background-color: var(--cell-color);
+}
+
+.menu-toggle .material-symbols-rounded {
+	font-size: 22px;
+}
+
+/* Active: icon uses Google color + filled weight */
+.menu-toggle.active {
+	color: var(--google-color);
+}
+
+[data-theme="dark"] .menu-toggle.active {
+	/* google colors stay saturated enough on dark backgrounds */
+	color: var(--google-color);
+	filter: brightness(1.2);
+}
+
+.menu-toggle.active .material-symbols-rounded {
+	font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.menu-toggle-label {
+	flex: 1;
+	font-weight: 500;
+	text-align: left;
+}
+
+.menu-toggle-status {
+	font-size: 0.775rem;
+	opacity: 0.55;
+	min-width: 2ch;
+	text-align: right;
+}
+
+.menu-toggle.active .menu-toggle-status {
+	opacity: 0.85;
+}

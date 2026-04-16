@@ -1,8 +1,9 @@
 import { Config } from "./config.js";
+import { percentScoreFloat, percentScoreString } from "./utils.js";
 
 export const Elements = {
 	grid: document.getElementById('grid'),
-	gridContainer: document.getElementById('grid-container'),
+	gameContainer: document.getElementById('game-container'),
 	tooltip: document.getElementById('tooltip'),
 	title: document.getElementById('title'),
 	levelDisplay: document.getElementById('level-counter'),
@@ -84,7 +85,7 @@ Graphics.faceChanger = function(game) {
 		if (remaining < 0) dead = true;
 	}
 	this.resetFace = function (victory = false, animate = false) {
-		const score = game.getPercentScore();
+		const score = percentScoreFloat(game.state.score);
 		currentFace = null;
 		if (victory) {
 			for (const tier of faceImages.start) {
@@ -125,26 +126,23 @@ Graphics.flashImage = async function (src) {
 }
 Graphics.resetToolTip = function(game, victory) {
 	Elements.levelDisplay.textContent = `Level ${game.state.level}`;
-	game.percentScorer.updateScore(game.memory.score);
+	game.percentScorer.updateScore(game.state.score);
 	game.faceChanger.resetFace(victory);
 }
-Graphics.PercentScorer = function (score) {
+Graphics.PercentScorer = function () {
 	const scoreDisplay = Elements.scoreDisplay;
 	const rounding = Config.scoreRounding;
 	const delay = 80;
 	let intervalId = null;
 
-	const percentScore = function (score) {
-		return parseFloat((score.num / score.denominator * 100).toFixed(rounding));
-	};
 	const displayScore = function (formattedScore) {
 		scoreDisplay.classList.add('visible');
 		scoreDisplay.textContent = formattedScore + "%";
 	};
 
 	this.interpolateScore = async function (oldScore, newScore) {
-		const displayStart = percentScore(oldScore);
-		const displayEnd = percentScore(newScore);
+		const displayStart = percentScoreFloat(oldScore);
+		const displayEnd = percentScoreFloat(newScore);
 		if (displayStart === displayEnd) {
 			scoreDisplay.classList.add('enlarge');
 			setTimeout(() => {
@@ -181,7 +179,7 @@ Graphics.PercentScorer = function (score) {
 		if (intervalId) clearInterval(intervalId);
 		intervalId = null;
 		scoreDisplay.classList.remove('enlarge');
-		displayScore(percentScore(score).toFixed(rounding));
+		displayScore(percentScoreString(score));
 	};
 };
 Graphics.colorSequencer = function(sequence) {
