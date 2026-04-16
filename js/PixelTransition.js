@@ -1,7 +1,8 @@
 import { shuffle } from './utils.js';
 import { Elements } from './graphics.js';
+import { isPhone } from './utils.js';
 
-const PIXEL_SIZE = 36; // target square side length in CSS pixels
+const PIXEL_SIZE = isPhone() ? 32 : 36; // target square side length in CSS pixels
 
 export class PixelTransition {
     constructor() {
@@ -62,7 +63,7 @@ export class PixelTransition {
                 setTimeout(() => {
                     pixel.classList.add('visible');
                     if (i === count - 1) resolve();
-                }, (i / count) * 1000);
+                }, (i / count) * 1400);
             });
         });
         await this._transitionPromise;

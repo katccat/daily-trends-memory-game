@@ -23,8 +23,8 @@ export class BoardCreator {
 			hard: [20, 20],
 		},
 		challenge: {
-			easy: [8, 10, 12],
-			medium: [14],
+			easy: [10, 12],
+			medium: [14, 14],
 			hard: [14],
 		}
 	};
@@ -54,16 +54,13 @@ export class BoardCreator {
 		}
 
 		if (!challengeMode) {
-			if (cellCount > 18 || (cellCount > 16 && isPhone())) {
-				additionalMistakes = 2;
-			}
-			else if (cellCount > 14) {
+			if (cellCount > 14) {
 				additionalMistakes = 1;
 			}
 		}
 		else {
-			if (cellCount > 8) additionalMistakes = 3;
-			else additionalMistakes = 2;
+			if (cellCount > 8) additionalMistakes = 2;
+			else additionalMistakes = 1;
 		}
 		
 		const board = new Board(cellCount, additionalMistakes);
