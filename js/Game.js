@@ -362,7 +362,7 @@ export class Game {
 		this.pixelTransition.destroy();
 
 		this.cellLoopScheduler.stop();
-
+		Graphics.hidePrompt();
 		for (const cell of this.state.cells) cell.remove();
 		this.state.cells.length = 0;
 

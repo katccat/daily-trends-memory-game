@@ -49,9 +49,10 @@ Graphics.faceChanger = function(game) {
 		default: { src: 'images/faces/1.png', threshold: 0 },
 		start: [
 			{ src: 'images/faces/trophy_resized.gif', fx: fx.brokenGlasses, threshold: 100 },
-			{ src: 'images/faces/special3.gif', fx: fx.brokenGlasses, threshold: 90 },
-			{ src: 'images/faces/special2.gif', fx: fx.brokenGlasses, threshold: 75 },
-			{ src: 'images/faces/special1.png', fx: fx.brokenGlasses, threshold: 50 },
+			{ src: 'images/faces/special4.gif', fx: fx.brokenGlasses, threshold: 90 },
+			{ src: 'images/faces/special3.gif', fx: fx.brokenGlasses, threshold: 75 },
+			{ src: 'images/faces/special2.png', fx: fx.brokenGlasses, threshold: 50 },
+			{ src: 'images/faces/special1.png', threshold: 25 },
 		],
 	};
 	faceImages.start.push(faceImages.default);

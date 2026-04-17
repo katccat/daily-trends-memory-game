@@ -84,8 +84,8 @@ export const Config = {
 	],
 	difficulty: {
 		easy: 0,
-		medium: 6,
-		hard: 12,
+		medium: 5,
+		hard: 10,
 	},
 	animation: {
 		shake: {

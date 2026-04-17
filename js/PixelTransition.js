@@ -3,6 +3,8 @@ import { Elements } from './graphics.js';
 import { isPhone } from './utils.js';
 
 const PIXEL_SIZE = isPhone() ? 32 : 36; // target square side length in CSS pixels
+const SNAP_MS = 120; // delay between opacity steps (1→0.5→0 or reverse)
+const buffer = 300;
 
 export class PixelTransition {
     constructor() {
@@ -53,39 +55,59 @@ export class PixelTransition {
         return count;
     }
 
-    async fillIn() {
+    // Advances exactly pixelsPerFrame pixels per animation frame.
+    // onStep1 fires immediately on a pixel's turn; onStep2 fires SNAP_MS later.
+    // The returned promise resolves once every pixel's onStep2 has run.
+    _animate(pixels, pixelsPerFrame, onStep1, onStep2) {
+        return new Promise(resolve => {
+            let idx = 0;
+            let pending = 0;
+            const total = pixels.length;
+
+            const tick = () => {
+                const end = Math.min(idx + pixelsPerFrame, total);
+                for (let i = idx; i < end; i++) {
+                    const pixel = pixels[i];
+                    onStep1(pixel);
+                    pending++;
+                    setTimeout(() => {
+                        onStep2(pixel);
+                        pending--;
+                        if (idx >= total && pending === 0) resolve();
+                    }, SNAP_MS);
+                }
+                idx = end;
+                if (idx < total) requestAnimationFrame(tick);
+            };
+
+            requestAnimationFrame(tick);
+        });
+    }
+
+    async fillIn(pixelsPerFrame = 3) {
         const pixels = this._pixels;
         for (const pixel of pixels) pixel.className = 'pixel';
         shuffle(pixels);
-        const count = pixels.length;
-        this._transitionPromise = new Promise(resolve => {
-            pixels.forEach((pixel, i) => {
-                setTimeout(() => {
-                    pixel.classList.add('visible');
-                    if (i === count - 1) resolve();
-                }, (i / count) * 1400);
-            });
-        });
+        this._transitionPromise = this._animate(
+            pixels, pixelsPerFrame,
+            pixel => pixel.classList.add('half'),
+            pixel => { pixel.classList.remove('half'); pixel.classList.add('visible'); }
+        );
         await this._transitionPromise;
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, buffer));
     }
 
-    async fillOut() {
+    async fillOut(pixelsPerFrame = 3) {
         const pixels = this._pixels;
         for (const pixel of pixels) pixel.className = 'pixel visible';
         pixels.reverse();
-        // shuffle(pixels);
-        const count = pixels.length;
-        this._transitionPromise = new Promise(resolve => {
-            pixels.forEach((pixel, i) => {
-                setTimeout(() => {
-                    pixel.classList.remove('visible');
-                    if (i === count - 1) resolve();
-                }, (i / count) * 1000);
-            });
-        });
+        this._transitionPromise = this._animate(
+            pixels, pixelsPerFrame,
+            pixel => { pixel.classList.remove('visible'); pixel.classList.add('half'); },
+            pixel => pixel.classList.remove('half')
+        );
         await this._transitionPromise;
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, buffer));
     }
 
     destroy() {

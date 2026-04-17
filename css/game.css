@@ -15,7 +15,10 @@
 	background-color: var(--bg-color);
 	opacity: 0;
 	border: 1px solid var(--bg-color);
-	/* transition: opacity 0.2s linear; */
+}
+
+.pixel.half {
+	opacity: 0.5;
 }
 
 .pixel.visible {
@@ -213,4 +216,79 @@
 	font-family: "Google Sans";
 	font-weight: bold;
 	color: white;
+}
+
+/* ── Trend Histogram ─────────────────────────────────────────── */
+#graph-container {
+	width: 100%;
+	max-width: 500px;
+	height: 80%;
+}
+.trend-histogram {
+	z-index: 5;
+	/* opacity: 0.5; */
+	display: flex;
+	align-items: flex-end;
+	gap: 2px;
+	height: 300px;
+	/* padding: 0 4px 20px; 20px bottom reserved for labels */
+	box-sizing: border-box;
+}
+
+.hist-col {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	height: 100%;
+	min-width: 0;
+}
+
+.hist-track {
+	position: relative;
+	flex: 1;
+	width: 100%;
+}
+
+.hist-ghost {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background: var(--frame-color, rgba(128, 128, 128, 0.25));
+	border-radius: 2px 2px 0 0;
+	opacity: 0;
+}
+
+.hist-fill {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background: var(--theme-blue, #4285f4);
+	border-radius: 2px 2px 0 0;
+	transition: height 0.55s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.hist-count {
+	position: absolute;
+	bottom: calc(100% + 2px);
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-size: 8px;
+	color: var(--text-color, #888);
+	pointer-events: none;
+}
+
+.hist-label {
+	position: absolute;
+	bottom: -18px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-size: 8px;
+	color: var(--text-color, #888);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }

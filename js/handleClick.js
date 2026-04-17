@@ -32,12 +32,12 @@ export async function handleClick (game) {
 
 				if (game.state.viewedCells.includes(cell1) || game.state.viewedCells.includes(cell2)) {
 					game.state.avoidableMistakes++;
-					const shakePromise = Promise.all([cell1.transitioning, cell2.transitioning]).then(() => {
-						cell1.shake();
-						cell2.shake();
-						return Promise.all([cell1.transitioning, cell2.transitioning]);
-					});
-					promises.push(shakePromise);
+					// const shakePromise = Promise.all([cell1.transitioning, cell2.transitioning]).then(() => {
+					// 	cell1.shake();
+					// 	cell2.shake();
+					// 	return Promise.all([cell1.transitioning, cell2.transitioning]);
+					// });
+					// promises.push(shakePromise);
 				}
 				else {
 					// if the player turned over the first cell which they have previously seen a match to but didn't make the match

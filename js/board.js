@@ -54,9 +54,9 @@ export class BoardCreator {
 		}
 
 		if (!challengeMode) {
-			if (cellCount > 14) {
-				additionalMistakes = 1;
-			}
+			// if (cellCount > 14) {
+			// 	additionalMistakes = -1;
+			// }
 		}
 		else {
 			if (cellCount > 8) additionalMistakes = 1;
