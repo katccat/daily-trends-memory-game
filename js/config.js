@@ -15,6 +15,7 @@ export const Config = {
 		changeCellImage: 1500,
 		resolveTyping: 1000,
 		loseTransition: 1000,
+		showHistogram: 1800,
 	},
 	removeAmountWhenLose: 0,
 	removeAmountWhenGameOver: 12,

@@ -15,6 +15,7 @@ export const Elements = {
 	faceDisplay: document.getElementById('face'),
 	faceOverlay: document.getElementById('glasses'),
 	continuePrompt: document.getElementById('continue-prompt'),
+	histogramContainer: document.getElementById('histogram-container'),
 };
 export class Graphics {};
 

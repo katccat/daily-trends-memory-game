@@ -38,7 +38,6 @@ export class Menu {
 
 		if (saveData) percentScore = percentScoreFloat(saveData.score);
 		const hasSave = !!saveData && (percentScore > 0);
-		console.log(`${hasSave}, ${percentScore}`);
 		return { hasSave, percentScore };
 	}
 

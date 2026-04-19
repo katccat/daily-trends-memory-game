@@ -145,6 +145,9 @@ export const TrendSelector = function (trendData, game) {
 	this.getScore = function () {
 		return { num: keys.used.size, denominator: Object.keys(trends).length - keys.unusable.size };
 	};
+	this.getAllUsedTrends = function () {
+		return [...keys.used];
+	}
 	this.saveData = function () {
 		const data = {
 			unused: [...keys.unused],

@@ -10,6 +10,7 @@ import { CellLoopScheduler } from './CellSolvedLoop.js';
 import { TrendSelector } from './TrendSelector.js';
 import { handleClick } from './handleClick.js';
 import { PixelTransition } from './PixelTransition.js';
+import { TrendHistogram } from './TrendHistogram.js';
 
 export class Game {
 	constructor(trendData, challengeMode = false) {
@@ -52,6 +53,7 @@ export class Game {
 		this.gridLayout = new GridLayout(Elements);
 		this.faceChanger = new Graphics.faceChanger(this);
 		this.trendSelector = new TrendSelector(trendData, this);
+		this.trendHistogram = new TrendHistogram(trendData, Elements.histogramContainer);
 		this.percentScorer = new Graphics.PercentScorer(this.state.score);
 		this.cellLoopScheduler = new CellLoopScheduler();
 		this.pixelTransition = new PixelTransition();
@@ -105,6 +107,8 @@ export class Game {
 			} catch { }
 		}
 		this.updateScore(this.trendSelector.getScore(), false);
+		this.trendHistogram.updateTrends(this.trendSelector.getAllUsedTrends());
+		this.trendHistogram.rescale();
 		this.saveProgress = true;
 	}
 	createCells = function (numCells) {
@@ -220,6 +224,7 @@ export class Game {
 		if (this.board.giveLife) this.addLife();
 		
 		this.trendSelector.addTrends(this.state.pendingTrends, true);
+		this.trendHistogram.updateTrends(this.trendSelector.getAllUsedTrends());
 		this.updateScore(this.trendSelector.getScore(), true);
 		this.faceChanger.resetFace(true, true);
 		this.state.level++;
@@ -257,10 +262,25 @@ export class Game {
 				await this.updateScore(this.trendSelector.getScore(), true);
 			}
 		}
+		this.trendHistogram.updateTrends(this.trendSelector.getAllUsedTrends());
 		await new Promise(resolve => setTimeout(resolve, Config.delay.loseTransition));
 
 		if (gameOver) this.restartGame();
 		else this.newGame(false);
+	};
+	showPostGame = async function(text, showTrendHistogram = true) {
+		const typeSpeed = 90;
+		Elements.splashContainer.classList.add('fade-in');
+		if (showTrendHistogram) {
+			await Promise.all([
+				Graphics.typeText(text, typeSpeed, Elements.splashText), 
+				this.trendHistogram.rescale()
+			]);
+		} else {
+			// this.trendHistogram.hide();
+			await Graphics.typeText(text, typeSpeed, Elements.splashText);
+		}
+		Elements.splashContainer.classList.remove('fade-in');
 	};
 	selectMessage = function (victory) {
 		if (victory) {
@@ -292,7 +312,7 @@ export class Game {
 		// ── Message selection (before state resets) ──────────────────
 		let messageList;
 		if (!this.state.firstRun || this.state.level === 0) {
-			messageList = this.selectMessage(victory || this.state.firstRun);
+			messageList = this.selectMessage(!!victory || this.state.firstRun);
 		}
 		// ── Board selection ──────────────────────────────────────────
 		if (!(this.board && this.state.firstRun)) this.board = this.selectBoard();
@@ -308,21 +328,22 @@ export class Game {
 		}
 
 		// Fade out grid and tooltip simultaneously, reset tooltip once faded
-		if (!this.state.firstRun && victory) {
+		if (!this.state.firstRun && !!victory) {
 			Elements.grid.classList.remove('active');
 			Elements.tooltip.classList.remove('active');
 			Elements.tooltip.addEventListener('transitionend', () => {
-				Graphics.resetToolTip(this, victory);
+				Graphics.resetToolTip(this, !!victory);
 			}, { once: true });
 		}
 		else Graphics.resetToolTip(this, true);
 		if (!useMosaic) await new Promise(r => setTimeout(r, 320));
 		// Wait for cells to finish fading out before removing them
 		
-		await this.deleteCells(victory);
+		await this.deleteCells(!!victory);
 		
 		// ── Splash message (blocks until animation completes) ────────
-		if (messageList) await Graphics.splashText(randomItem(messageList));
+
+		if (messageList) await this.showPostGame(randomItem(messageList), (!!victory && !this.state.firstRun));
 		
 		// ── State reset ──────────────────────────────────────────────
 		if (newCellCount) await this.gridLayout.update(this.board.cellCount);
@@ -338,7 +359,7 @@ export class Game {
 		document.body.classList.add('active');
 
 		// ── Activate cells (animates in one by one) ──────────────────
-		await this.activateCells(this.board, victory);
+		await this.activateCells(this.board, !!victory);
 
 		// ── Undo pixel mosaic, revealing the new cells ───────────────
 		if (useMosaic) await this.pixelTransition.fillOut();
