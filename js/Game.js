@@ -277,7 +277,7 @@ export class Game {
 				this.trendHistogram.rescale()
 			]);
 		} else {
-			// this.trendHistogram.hide();
+			this.trendHistogram.hide();
 			await Graphics.typeText(text, typeSpeed, Elements.splashText);
 		}
 		Elements.splashContainer.classList.remove('fade-in');
