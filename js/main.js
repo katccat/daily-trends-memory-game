@@ -2,12 +2,14 @@ import { Config } from './config.js';
 import { Game } from './Game.js';
 import { ImageValidator } from './utils.js';
 import { Menu } from './Menu.js';
+import { soundEffects } from './SoundEffects.js';
 
+export { soundEffects };
 export const imageValidator = new ImageValidator();
 
 async function init(skipMenu = false) {
 	if (skipMenu) {
-		const trendData = await getTrendSet(Config.ENDPOINT.TODAY);
+		const trendData = await fetchWithOfflineFallback(Config.ENDPOINT.TODAY);
 		const game = new Game(trendData, false);
 		globalThis.game = game;
 		game.newGame();
@@ -26,21 +28,14 @@ async function init(skipMenu = false) {
 	menu.onStart(async ({ date, endpoint, challengeMode, restart }) => {
 		if (restart) clearSavedProgress(date, challengeMode);
 
-		let trendData;
-		try {
-			trendData = await getTrendSet(endpoint ?? Config.ENDPOINT.TODAY);
-		} catch {
-			try {
-				trendData = await getTrendSet(Config.ENDPOINT.FALLBACK);
-			} catch {
-				trendData = await getTrendSet(Config.OFFLINE_FALLBACK);
-			}
-		}
+		const trendData = await fetchWithOfflineFallback(endpoint ?? Config.ENDPOINT.TODAY);
 
 		// Push a history entry so the back button returns to the menu.
 		history.pushState({ view: 'game' }, '');
 
 		await menu.hide();
+		// trendData = await fetch(Config.OFFLINE_FALLBACK).then(res => res.json());
+		// console.log(trendData);
 		currentGame = new Game(trendData, challengeMode);
 		globalThis.game = currentGame;
 		currentGame.newGame();
@@ -72,13 +67,25 @@ function clearSavedProgress(date, challengeMode) {
 	localStorage.setItem(date, JSON.stringify(entry));
 }
 
+async function fetchWithOfflineFallback(endpoint) {
+	const attempts = [
+		() => getTrendSet(endpoint),
+		() => getTrendSet(Config.ENDPOINT.FALLBACK),
+		() => fetch(Config.OFFLINE_FALLBACK).then(res => { if (!res.ok) throw new Error(); return res.json(); }),
+	];
+	for (const attempt of attempts) {
+		try { return await attempt(); } catch {}
+	}
+	throw new Error('All trend sources failed');
+}
+
 async function getTrendSet(endpoint) {
 	if (!endpoint) throw new Error('No endpoint');
 	const trendData = await fetch(Config.BACKEND + endpoint).then(res => {
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
 		return res.json();
 	}).then(data => {
-		if (data.count < 1) throw new Error(`No trends found in ${Config.BACKEND}`);
+		if (data.count < 1) throw new Error(`No trends found`);
 		return data;
 	});
 	return trendData;

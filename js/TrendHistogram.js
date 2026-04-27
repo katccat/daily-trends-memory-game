@@ -1,13 +1,11 @@
 import { Config } from "./config.js";
 const BUCKETS = [
-	{ label: '500',   min: 0,         max: 500       },
-	{ label: '1K',   min: 500,        max: 1_000     },
+	{ label: '1K',   min: 0,         max: 1_000       },
 	{ label: '5K',   min: 1_000,      max: 5_000     },
 	{ label: '10K',  min: 5_000,      max: 10_000    },
 	{ label: '50K',  min: 10_000,     max: 50_000    },
 	{ label: '100K', min: 50_000,     max: 100_000   },
-	{ label: '500K', min: 100_000,    max: 500_000   },
-	{ label: '1M',   min: 500_000,    max: Infinity  },
+	{ label: '1M', min: 100_000,    max: Infinity   },
 ];
 
 const colors = ['#4285F4', '#34A853', '#FBBC05', '#EA4335'];
@@ -41,11 +39,14 @@ function buildColorMap(relPcts) {
 
 function parseViews(str) {
 	if (!str) return 0;
-	const s = str.trim().toUpperCase();
-	if (s.endsWith('K')) return parseFloat(s) * 1e3;
-	if (s.endsWith('M')) return parseFloat(s) * 1e6;
-	if (s.endsWith('B')) return parseFloat(s) * 1_000_000_000;
-	return parseFloat(s) || 0;
+	try {
+		const s = str.trim().toUpperCase();
+		if (s.endsWith('K')) return parseFloat(s) * 1e3;
+		if (s.endsWith('M')) return parseFloat(s) * 1e6;
+		if (s.endsWith('B')) return parseFloat(s) * 1_000_000_000;
+		return parseFloat(s) || 0;
+	}
+	catch {return 0;}
 }
 
 export class TrendHistogram {
@@ -143,7 +144,14 @@ export class TrendHistogram {
 
 		this.show();
 		if (alwaysInterpolate) {
-			for (const { fill } of visibleEntries.map(([, bar]) => bar)) fill.style.height = '0%';
+			for (const { fill } of visibleEntries.map(([, bar]) => bar)) {
+				fill.style.transition = 'none';
+				fill.style.height = '0%';
+			}
+			visibleEntries[0]?.[1]?.fill?.offsetHeight; // commit 0% before re-enabling transition
+			for (const { fill } of visibleEntries.map(([, bar]) => bar)) {
+				fill.style.transition = '';
+			}
 		}
 		const toReveal = [];
 

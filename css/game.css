@@ -52,7 +52,7 @@
 }
 
 #tooltip.red {
-	background-color: deeppink;
+	background-color: rgb(255, 20, 75);
 }
 
 #score-counter {
@@ -283,5 +283,5 @@
 	text-overflow: ellipsis;
 	position: relative;
 	bottom: 18px;
-	visibility: hidden;
+	/* visibility: hidden; */
 }

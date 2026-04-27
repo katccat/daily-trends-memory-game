@@ -17,7 +17,7 @@ export function percentScoreString(score) {
 export const ImageValidator = function () {
 	// Map of url -> boolean (true = valid, false = invalid), insertion-ordered for eviction
 	let imageCache = new Map();
-	const MAX_ENTRIES = 1000;
+	const MAX_ENTRIES = 500;
 
 	const saved = JSON.parse(localStorage.getItem('images'));
 	if (saved) {
@@ -80,10 +80,10 @@ export const ImageValidator = function () {
 			return imageCache.get(url);
 		}
 		const valid = await validateImage(url);
-		if (imageCache.size >= MAX_ENTRIES) {
+		imageCache.set(url, valid);
+		while (imageCache.size > MAX_ENTRIES) {
 			imageCache.delete(imageCache.keys().next().value);
 		}
-		imageCache.set(url, valid);
 		this.saveData();
 		return valid;
 	};
