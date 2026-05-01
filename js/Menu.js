@@ -119,7 +119,7 @@ export class Menu {
 				<div class="menu-cell menu-cell--green">
 					<div class="menu-cell-inner">
 						<div class="menu-cell-back"></div>
-						<button class="menu-cell-front menu-date-btn" id="menu-date-open">
+						<button class="menu-cell-front menu-toggle" id="menu-date-open">
 							<span class="material-symbols-rounded">calendar_today</span>
 							<span id="menu-date-label" class="menu-date-label"></span>
 							<span class="material-symbols-rounded menu-date-chevron">chevron_right</span>
@@ -148,15 +148,31 @@ export class Menu {
 					<div class="menu-cell-inner">
 						<div class="menu-cell-back"></div>
 						<button class="menu-cell-front menu-toggle" id="menu-challenge">
-							<span class="material-symbols-rounded">emoji_events</span>
+							<span class="material-symbols-rounded">sports_esports</span>
 							<span class="menu-toggle-label">Game mode</span>
 							<span class="menu-toggle-status"></span>
 						</button>
 					</div>
 				</div>
 
-				<!-- Sound toggle cell — yellow -->
+				<!-- Options cell — yellow (opens options panel) -->
 				<div class="menu-cell menu-cell--yellow">
+					<div class="menu-cell-inner">
+						<div class="menu-cell-back"></div>
+						<button class="menu-cell-front menu-toggle" id="menu-options-open">
+							<span class="material-symbols-rounded">settings</span>
+							<span class="menu-date-label">Options</span>
+							<span class="material-symbols-rounded menu-date-chevron">chevron_right</span>
+						</button>
+					</div>
+				</div>
+
+			</div>
+
+			<!-- Options panel -->
+			<div class="date-picker-panel options-panel" id="options-panel">
+				<div class="options-panel-header">Options</div>
+				<div class="menu-cell">
 					<div class="menu-cell-inner">
 						<div class="menu-cell-back"></div>
 						<button class="menu-cell-front menu-toggle" id="menu-sound">
@@ -166,9 +182,7 @@ export class Menu {
 						</button>
 					</div>
 				</div>
-
-				<!-- Theme toggle cell — yellow -->
-				<div class="menu-cell menu-cell--yellow">
+				<div class="menu-cell">
 					<div class="menu-cell-inner">
 						<div class="menu-cell-back"></div>
 						<button class="menu-cell-front menu-toggle" id="menu-theme">
@@ -178,7 +192,11 @@ export class Menu {
 						</button>
 					</div>
 				</div>
-
+				<div class="date-picker-footer">
+					<button class="menu-btn menu-btn-secondary" id="options-back">
+						Back
+					</button>
+				</div>
 			</div>
 
 			<!-- Date picker panel -->
@@ -195,7 +213,6 @@ export class Menu {
 				<div class="date-picker-grid" id="date-picker-grid"></div>
 				<div class="date-picker-footer">
 					<button class="menu-btn menu-btn-secondary date-picker-back-btn" id="picker-back">
-						<span class="material-symbols-rounded">arrow_back</span>
 						Back
 					</button>
 				</div>
@@ -204,6 +221,12 @@ export class Menu {
 
 		this.container.querySelector('#menu-date-open').addEventListener('click', () => {
 			this._showDatePicker();
+		});
+		this.container.querySelector('#menu-options-open').addEventListener('click', () => {
+			this._showOptions();
+		});
+		this.container.querySelector('#options-back').addEventListener('click', () => {
+			this._hideOptions();
 		});
 		this.container.querySelector('#picker-month-back').addEventListener('click', () => {
 			if (this._pickerMonthIndex < this.availableMonths.length - 1) {
@@ -266,6 +289,21 @@ export class Menu {
 		card.style.display = 'none';
 		this._animateOnNextRender = true;
 		this._renderPickerMonth(); // also adds .active to the picker panel
+	}
+
+	_showOptions() {
+		this.container.querySelector('#menu-card').style.display = 'none';
+		const panel = this.container.querySelector('#options-panel');
+		panel.classList.remove('flip-anim');
+		panel.classList.add('active');
+		panel.offsetHeight; // force reflow so animation restarts
+		panel.classList.add('flip-anim');
+	}
+
+	_hideOptions() {
+		const panel = this.container.querySelector('#options-panel');
+		panel.classList.remove('active', 'flip-anim');
+		this.container.querySelector('#menu-card').style.display = '';
 	}
 
 	_hideDatePicker() {

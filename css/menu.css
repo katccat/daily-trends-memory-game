@@ -12,12 +12,15 @@
 .menu-cell--yellow { --google-color: var(--google-yellow); }
 .menu-cell--green  { --google-color: var(--google-green); }
 
-/* Flip delays driven by visual order so the HTML stays clean */
+/* Flip delays — main card (visual order, HTML stays clean) */
 .menu-card > .menu-cell:nth-child(2) { --flip-delay: 0ms; }
 .menu-card > .menu-cell:nth-child(3) { --flip-delay: 120ms; }
 .menu-card > .menu-cell:nth-child(4) { --flip-delay: 240ms; }
 .menu-card > .menu-cell:nth-child(5) { --flip-delay: 360ms; }
-.menu-card > .menu-cell:nth-child(6) { --flip-delay: 480ms; }
+
+/* Flip delays — options panel rows */
+#options-panel > .menu-cell:nth-child(2) { --flip-delay: 0ms; }
+#options-panel > .menu-cell:nth-child(3) { --flip-delay: 120ms; }
 
 /* Material Symbols Rounded base style */
 .material-symbols-rounded {
@@ -63,7 +66,6 @@
 	gap: 2px;
 	width: min(88vw, 360px);
 	background-color: var(--bg-color);
-	/* Material Design elevation ~dp4 */
 	box-shadow:
 		0 10px 20px rgba(0, 0, 0, 0.19),
 		0 6px 6px rgba(0, 0, 0, 0.23);
@@ -103,6 +105,7 @@
 */
 .menu-cell {
 	perspective: 700px;
+	height: 50px;
 }
 
 .menu-cell-inner {
@@ -110,15 +113,21 @@
 	transform-style: preserve-3d;
 }
 
-/* Trigger the reveal when the overlay becomes active */
-#menu-container.active .menu-cell-inner {
+@keyframes menu-cell-flip {
+	from { transform: rotateX(-180deg); }
+	to   { transform: rotateX(0deg); }
+}
+
+/* Trigger the reveal on the main card when the overlay opens */
+#menu-container.active .menu-card .menu-cell-inner {
 	animation: menu-cell-flip 0.5s ease-out both;
 	animation-delay: var(--flip-delay, 0ms);
 }
 
-@keyframes menu-cell-flip {
-	from { transform: rotateX(-180deg); }
-	to   { transform: rotateX(0deg); }
+/* Trigger the reveal in the options panel when it opens */
+.options-panel.flip-anim .menu-cell-inner {
+	animation: menu-cell-flip 0.5s ease-out both;
+	animation-delay: var(--flip-delay, 0ms);
 }
 
 .menu-cell-back,
@@ -144,7 +153,6 @@
 	box-sizing: border-box;
 	background-color: var(--frame-color);
 	color: #202124;
-	/* Persistent accent — matches the cell's Google color */
 	border-left: 4px solid var(--google-color);
 }
 
@@ -152,63 +160,8 @@
 	color: #e8eaed;
 }
 
-/* === Date open button ====================================================== */
-.menu-date-btn {
-	gap: 12px;
-	padding: 14px 16px;
-	border: none;
-	border-left: 4px solid var(--google-color);
-	cursor: pointer;
-	font-family: inherit;
-	font-size: 0.875rem;
-	font-weight: 500;
-	text-align: left;
-	transition: background-color 0.15s;
-	color: inherit;
-}
-
-.menu-date-btn:hover {
-	background-color: var(--cell-color);
-}
-
-.menu-date-label {
-	flex: 1;
-	font-size: 0.875rem;
-	font-weight: 500;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.menu-date-chevron {
-	opacity: 0.35;
-}
-
-.menu-arrow-btn {
-	background: none;
-	border: none;
-	cursor: pointer;
-	color: inherit;
-	padding: 8px;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: background-color 0.15s;
-	flex-shrink: 0;
-}
-
-.menu-arrow-btn:hover:not(:disabled) {
-	background-color: var(--cell-color);
-}
-
-.menu-arrow-btn:disabled {
-	opacity: 0.25;
-	cursor: default;
-}
-
-/* === Date picker panel ===================================================== */
+/* === Shared panel styles ================================================== */
+/* Used by both the date picker and the options panel */
 .date-picker-panel {
 	display: none;
 	flex-direction: column;
@@ -227,12 +180,26 @@
 	display: flex;
 }
 
+.date-picker-footer {
+	display: flex;
+	background-color: var(--frame-color);
+	padding: 8px;
+}
+
+/* === Date picker ========================================================== */
 .date-picker-header {
 	display: flex;
 	align-items: center;
 	background-color: var(--google-green);
 	color: white;
 	padding: 10px 8px;
+}
+
+.date-picker-month-label {
+	flex: 1;
+	text-align: center;
+	font-size: 1rem;
+	font-weight: 500;
 }
 
 .date-picker-nav-btn {
@@ -243,13 +210,6 @@
 	background-color: rgba(255, 255, 255, 0.18) !important;
 }
 
-.date-picker-month-label {
-	flex: 1;
-	text-align: center;
-	font-size: 1rem;
-	font-weight: 500;
-}
-
 .date-picker-grid {
 	display: grid;
 	grid-template-columns: repeat(6, 1fr);
@@ -257,17 +217,6 @@
 	gap: 4px;
 	padding: 4px;
 	background-color: var(--bg-color);
-}
-
-.date-picker-footer {
-	display: flex;
-	background-color: var(--frame-color);
-	/* border-bottom: 4px solid var(--google-green); */
-	padding: 8px;
-}
-
-.date-picker-back-btn {
-	flex: 0 0 auto;
 }
 
 /* === Date cells (game-card aesthetic) ====================================== */
@@ -287,11 +236,7 @@
 }
 
 .date-picker-panel.flip-anim .date-cell-inner {
-	transform: rotateX(-180deg);
-}
-
-.date-picker-panel.flip-anim .date-cell-inner {
-	animation: menu-cell-flip .4s ease-out both;
+	animation: menu-cell-flip 0.4s ease-out both;
 	animation-delay: var(--flip-delay, 0ms);
 }
 
@@ -322,8 +267,23 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	/* gap: 3px; */
 	transition: background-color 0.15s;
+}
+
+.date-cell:hover .date-cell-front {
+	background-color: var(--cell-edge-color);
+}
+
+.date-cell--selected .date-cell-front {
+	box-shadow: inset 0 0 0 2px var(--google-blue);
+}
+
+.date-cell-day {
+	font-family: "Google Sans";
+	font-size: 32cqi;
+	line-height: 1;
+	position: relative;
+	z-index: 1;
 }
 
 .date-cell-fill {
@@ -347,24 +307,23 @@
 }
 
 .date-cell-fill::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background-repeat: repeat-x;
-    background-size: 40px 8px;
-	
+	content: '';
+	position: absolute;
+	top: -8px;
+	left: 0;
+	right: 0;
+	height: 8px;
+	background-repeat: repeat-x;
+	background-size: 40px 8px;
 }
 
 .date-cell-fill--normal::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 8'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%236cb5ff' stop-opacity='0.6'/%3E%3Cstop offset='100%25' stop-color='%236cb5ff' stop-opacity='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 0%2C4 C 6.4%2C1.5 13.6%2C1.5 20%2C4 C 26.4%2C6.5 33.6%2C6.5 40%2C4 L 40%2C8 L 0%2C8 Z' fill='url(%23g)'/%3E%3C/svg%3E");
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 8'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%236cb5ff' stop-opacity='0.6'/%3E%3Cstop offset='100%25' stop-color='%236cb5ff' stop-opacity='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 0%2C4 C 6.4%2C1.5 13.6%2C1.5 20%2C4 C 26.4%2C6.5 33.6%2C6.5 40%2C4 L 40%2C8 L 0%2C8 Z' fill='url(%23g)'/%3E%3C/svg%3E");
 	animation: date-fill-wave1 3s linear infinite;
 }
 
 .date-cell-fill--challenge::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 8'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ff87cb' stop-opacity='0.6'/%3E%3Cstop offset='100%25' stop-color='%23ff87cb' stop-opacity='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 0%2C4 C 6.4%2C1.5 13.6%2C1.5 20%2C4 C 26.4%2C6.5 33.6%2C6.5 40%2C4 L 40%2C8 L 0%2C8 Z' fill='url(%23g)'/%3E%3C/svg%3E");
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 8'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ff87cb' stop-opacity='0.6'/%3E%3Cstop offset='100%25' stop-color='%23ff87cb' stop-opacity='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 0%2C4 C 6.4%2C1.5 13.6%2C1.5 20%2C4 C 26.4%2C6.5 33.6%2C6.5 40%2C4 L 40%2C8 L 0%2C8 Z' fill='url(%23g)'/%3E%3C/svg%3E");
 	animation: date-fill-wave2 2s linear infinite;
 }
 
@@ -372,32 +331,30 @@
 	from { background-position-x: 0; }
 	to   { background-position-x: -40px; }
 }
+
 @keyframes date-fill-wave2 {
 	from { background-position-x: -20px; }
 	to   { background-position-x: 20px; }
 }
 
-.date-cell:hover .date-cell-front {
-	background-color: var(--cell-edge-color);
+/* === Options panel ======================================================== */
+.options-panel {
+	--google-color: var(--google-yellow);
+	gap: 2px;
 }
 
-.date-cell--selected .date-cell-front {
-	box-shadow: inset 0 0 0 2px var(--google-blue);
+/* Options panel rows have no left border accent — they sit flush in the panel */
+.options-panel .menu-toggle {
+	border-left: none;
 }
 
-.date-cell-day {
-	font-family: "Google Sans";
-	font-size: 32cqi;
-	/* font-weight: 500; */
-	line-height: 1;
-	position: relative;
-	z-index: 1;
-}
-
-/* Today dot */
-.date-cell-day--today {
-	/* font-family: "Tiny5";
-	font-size: 36cqi; */
+.options-panel-header {
+	background-color: var(--google-yellow);
+	color: white;
+	padding: 14px 16px;
+	text-align: center;
+	font-size: 1rem;
+	font-weight: 500;
 }
 
 /* === Actions row ========================================================== */
@@ -406,6 +363,7 @@
 	padding: 10px 12px;
 }
 
+/* === Buttons ============================================================== */
 .menu-btn {
 	flex: 1;
 	display: flex;
@@ -455,13 +413,73 @@
 	padding: 10px 13px;
 }
 
+/* === Nav arrow buttons ==================================================== */
+.menu-arrow-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: inherit;
+	padding: 8px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.15s;
+	flex-shrink: 0;
+}
+
+.menu-arrow-btn:hover:not(:disabled) {
+	background-color: var(--cell-color);
+}
+
+.menu-arrow-btn:disabled {
+	opacity: 0.25;
+	cursor: default;
+}
+
+/* === Sub-panel open buttons (date, options) ================================ */
+/* These are .menu-cell-front elements styled as row buttons with a chevron */
+.menu-date-btn {
+	gap: 12px;
+	padding: 14px 16px;
+	border-top: none;
+	border-right: none;
+	border-bottom: none;
+	cursor: pointer;
+	font-family: inherit;
+	font-size: 0.875rem;
+	font-weight: 500;
+	text-align: left;
+	transition: background-color 0.15s;
+	color: inherit;
+}
+
+.menu-date-btn:hover {
+	background-color: var(--cell-color);
+}
+
+.menu-date-label {
+	flex: 1;
+	font-size: 0.875rem;
+	font-weight: 500;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.menu-date-chevron {
+	opacity: 0.35;
+}
+
 /* === Toggle rows ========================================================== */
 /* .menu-toggle is also .menu-cell-front (a <button> element) */
 .menu-toggle {
 	gap: 14px;
 	padding: 14px 16px;
-	border: none;
-	border-left: 4px solid var(--google-color);
+	border-top: none;
+	border-right: none;
+	border-bottom: none;
 	cursor: pointer;
 	text-align: left;
 	font-family: inherit;
@@ -477,14 +495,11 @@
 	font-size: 22px;
 }
 
-/* Active: icon uses Google color + filled weight */
 .menu-toggle.active {
 	color: var(--google-color);
 }
 
 [data-theme="dark"] .menu-toggle.active {
-	/* google colors stay saturated enough on dark backgrounds */
-	color: var(--google-color);
 	filter: brightness(1.2);
 }
 
