@@ -1,5 +1,6 @@
 import { Config } from "./config.js";
 import { percentScoreFloat, percentScoreString } from "./utils.js";
+import { soundEffects } from "./SoundEffects.js";
 
 export const Elements = {
 	grid: document.getElementById('grid'),
@@ -48,7 +49,7 @@ Graphics.faceChanger = function(game) {
 			],
 		},
 		default: { src: 'images/faces/1.png', threshold: 0 },
-		start: [
+		special: [
 			{ src: 'images/faces/trophy_resized.gif', fx: fx.brokenGlasses, threshold: 100 },
 			{ src: 'images/faces/special4.gif', fx: fx.brokenGlasses, threshold: 90 },
 			{ src: 'images/faces/special3.gif', fx: fx.brokenGlasses, threshold: 75 },
@@ -56,11 +57,11 @@ Graphics.faceChanger = function(game) {
 			{ src: 'images/faces/special1.png', threshold: 25 },
 		],
 	};
-	faceImages.start.push(faceImages.default);
 	
 	let dead = false;
 	let countedMistakes = 0;
 	let currentFace;
+	let lastScore = 0;
 	
 	this.changeFace = function () {
 		if (dead) return;
@@ -84,24 +85,37 @@ Graphics.faceChanger = function(game) {
 		}
 
 		faceDisplay.src = currentFace.src;
-		if (remaining < 0) dead = true;
+		if (remaining < 0) {
+			dead = true;
+			soundEffects.bells();
+		}
+		else if (remaining === 0) soundEffects.chatter();
 	}
 	this.resetFace = function (victory = false, animate = false) {
 		const score = percentScoreFloat(game.state.score);
-		currentFace = null;
+		let specialFace;
+		let thresholdCrossed = 0;
 		if (victory) {
-			for (const tier of faceImages.start) {
+			for (const tier of faceImages.special) {
 				if (score >= tier.threshold) {
-					currentFace = tier;
+					specialFace = tier;
+					thresholdCrossed = tier.threshold;
 					break;
 				}
 			}
 		}
-		if (!currentFace) currentFace = faceImages.default;
+		if (specialFace) {
+			if (thresholdCrossed > lastScore) {
+				soundEffects.whistle();
+				if (animate) Graphics.flashImage(specialFace.src);
+			}
+			currentFace = specialFace;
+		}
+		else currentFace = faceImages.default;
 		faceDisplay.src = currentFace.src;
 		countedMistakes = 0;
 		dead = false;
-		// if (animate && currentFace !== faceImages.default) Graphics.flashImage(currentFace.src);
+		lastScore = score;
 	}
 	const cacheBust = function (src) {
 		return src + '?t=' + Date.now();
@@ -110,7 +124,7 @@ Graphics.faceChanger = function(game) {
 Graphics.splashText = async function (text) {
 	const splashContainer = Elements.splashContainer;
 	splashContainer.classList.add('fade-in');
-	await this.typeText(text, 90, Elements.splashText);
+	await this.typeText(text, 90, true, Elements.splashText);
 	splashContainer.classList.remove('fade-in');
 };
 Graphics.flashMessage = async function (text) {
@@ -162,11 +176,13 @@ Graphics.PercentScorer = function () {
 			scoreDisplay.classList.add('enlarge');
 			intervalId = setInterval(() => {
 				current += step;
+				soundEffects.scoreTick();
 				displayScore(Math.abs(current).toFixed(rounding));
 				const isComplete = step > 0
 					? parseFloat(current.toFixed(rounding)) >= displayEnd
 					: parseFloat(current.toFixed(rounding)) <= displayEnd;
 				if (isComplete) {
+					soundEffects.scoreTickEnd();
 					clearInterval(intervalId);
 					intervalId = null;
 					scoreDisplay.classList.remove('enlarge');
@@ -194,10 +210,40 @@ Graphics.colorSequencer = function(sequence) {
 		return color;
 	}
 }
-Graphics.typeText = async function (text, delayMs, ...elements) {
+Graphics.typeTextColored = async function (text, colors, delayMs, ...elements) {
+	console.log(text);
+	const words = text.split(' ');
+	elements.forEach(element => {
+		element.innerHTML = '';
+		words.forEach((word, wi) => {
+			if (wi > 0) element.appendChild(document.createTextNode(' '));
+			const wordSpan = document.createElement('span');
+			wordSpan.style.color = colors[wi % colors.length];
+			for (const char of word) {
+				const charSpan = document.createElement('span');
+				charSpan.textContent = char;
+				charSpan.style.opacity = '0';
+				charSpan.style.transition = 'opacity 0.15s linear';
+				wordSpan.appendChild(charSpan);
+			}
+			element.appendChild(wordSpan);
+		});
+	});
+
+	const charSpanSets = elements.map(el => [...el.querySelectorAll('span > span')]);
+	const len = Math.max(...charSpanSets.map(s => s.length));
+	for (let i = 0; i < len; i++) {
+		requestAnimationFrame(() => {
+			charSpanSets.forEach(spans => { if (spans[i]) spans[i].style.opacity = '1'; });
+		});
+		await new Promise(resolve => setTimeout(resolve, delayMs));
+	}
+};
+Graphics.typeText = async function (text, delayMs, audio, ...elements) {
 	elements.forEach(element => {
 		element.innerHTML = '';
 		for (const char of text) {
+
 			const span = document.createElement('span');
 			span.textContent = char;
 			span.style.opacity = '0';
@@ -214,7 +260,22 @@ Graphics.typeText = async function (text, delayMs, ...elements) {
 			spanSets.forEach(spans => spans[index].style.opacity = '1');
 		});
 		await new Promise(resolve => setTimeout(resolve, delayMs));
+		// if (audio) soundEffects.click();
 	}
+}
+Graphics.deleteText = async function (delayMs, ...elements) {
+	const spanSets = elements.map(el => [...el.querySelectorAll('span')]);
+
+	const maxLen = Math.max(...spanSets.map(s => s.length));
+	for (let i = maxLen - 1; i >= 0; i--) {
+		const index = i;
+		requestAnimationFrame(() => {
+			spanSets.forEach(spans => { if (spans[index]) spans[index].style.opacity = '0'; });
+		});
+		await new Promise(resolve => setTimeout(resolve, delayMs));
+	}
+
+	elements.forEach(element => { element.innerHTML = ''; });
 }
 Graphics.showPrompt = async function() {
 	Elements.continuePrompt.classList.add('fade-in');

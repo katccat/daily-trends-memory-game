@@ -1,7 +1,7 @@
 import { Config } from './config.js';
 import { fitFontSize } from './utils.js';
-import { Graphics } from './graphics.js';
-import { Elements } from './graphics.js';
+import { Graphics } from './Graphics.js';
+import { Elements } from './Graphics.js';
 
 export function CellLoopScheduler() {
 	const cellLoops = [];
@@ -91,7 +91,7 @@ export class CellSolvedLoop {
 		this.start = async function () {
 			Promise.all(cells.map(cell => cell.showBackground())).then(() => backgroundResolver());
 			await new Promise(r => setTimeout(r, 500));
-			await Graphics.typeText(text, 90, ...labelElements);
+			await Graphics.typeText(text, 90, false, ...labelElements);
 			await new Promise(r => setTimeout(r, Config.delay.resolveTyping));
 			typingResolver();
 		};

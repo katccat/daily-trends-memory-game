@@ -1,6 +1,6 @@
 import { Config } from './config.js';
-import { Elements } from './graphics.js';
-import { Graphics } from './graphics.js';
+import { Elements } from './Graphics.js';
+import { Graphics } from './Graphics.js';
 import { GridLayout } from './gridlayout.js';
 import { Cell } from './cell.js';
 import { Board } from './board.js';
@@ -273,12 +273,12 @@ export class Game {
 		Elements.splashContainer.classList.add('fade-in');
 		if (showTrendHistogram) {
 			await Promise.all([
-				Graphics.typeText(text, typeSpeed, Elements.splashText), 
+				Graphics.typeText(text, typeSpeed, true, Elements.splashText), 
 				this.trendHistogram.rescale()
 			]);
 		} else {
 			this.trendHistogram.hide();
-			await Graphics.typeText(text, typeSpeed, Elements.splashText);
+			await Graphics.typeText(text, typeSpeed, true, Elements.splashText);
 		}
 		Elements.splashContainer.classList.remove('fade-in');
 	};
@@ -311,7 +311,7 @@ export class Game {
 		this.cellLoopScheduler.stop();
 		// ── Message selection (before state resets) ──────────────────
 		let messageList;
-		if (!this.state.firstRun || this.state.level === 0) {
+		if (!this.state.firstRun) {
 			messageList = this.selectMessage(!!victory || this.state.firstRun);
 		}
 		// ── Board selection ──────────────────────────────────────────
@@ -335,7 +335,7 @@ export class Game {
 				Graphics.resetToolTip(this, !!victory);
 			}, { once: true });
 		}
-		else Graphics.resetToolTip(this, true);
+		else Graphics.resetToolTip(this, this.state.firstRun);
 		if (!useMosaic) await new Promise(r => setTimeout(r, 320));
 		// Wait for cells to finish fading out before removing them
 		

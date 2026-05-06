@@ -1,5 +1,5 @@
 import { Config } from "./config.js";
-import { Graphics } from "./graphics.js";
+import { Graphics } from "./Graphics.js";
 import { imageValidator } from "./main.js";
 export const TrendSelector = function (trendData, game) {
 	const trends = trendData.trends;

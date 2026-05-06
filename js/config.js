@@ -1,4 +1,4 @@
-import { Elements } from './graphics.js';
+import { Elements } from './Graphics.js';
 import { randomItem, shuffle } from './utils.js';
 export const Config = {
 	BACKEND: 'https://backend.clayrobot.net/memorygame/',

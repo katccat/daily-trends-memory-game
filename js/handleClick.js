@@ -1,6 +1,7 @@
 import { waitForFlag } from "./utils.js";
-import { Graphics } from "./graphics.js";
+import { Graphics } from "./Graphics.js";
 import { Config } from "./config.js";
+import { soundEffects } from "./SoundEffects.js";
 export async function handleClick (game) {
 		if (game.state.awaitPlayer) {
 			game.state.awaitPlayer = false;
@@ -15,6 +16,7 @@ export async function handleClick (game) {
 			game.state.revealedCells.length = 0;
 
 			if (cell1.getName() === cell2.getName()) {
+				soundEffects.match();
 				cell1.solve();
 				cell2.solve();
 				game.cellLoopScheduler.newLoop(cell1, cell2);
@@ -25,6 +27,7 @@ export async function handleClick (game) {
 				}
 			}
 			else {
+				// soundEffects.mismatch();
 				game.state.remainingMistakes--;
 				// if either of these cells have already been viewed, this could have been avoided
 				

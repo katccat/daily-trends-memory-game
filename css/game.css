@@ -219,7 +219,7 @@
 }
 
 [data-theme="dark"] #splash-text {
-	font-family: "Google Sans";
+	font-family: "Roboto";
 	font-weight: bold;
 	color: white;
 }
@@ -273,7 +273,6 @@
 }
 
 .hist-label {
-	font-family: "Google Sans";
 	/* bottom: -18px; */
 	text-align: center;
 	font-size: 10px;

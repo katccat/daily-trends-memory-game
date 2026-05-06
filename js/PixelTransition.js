@@ -1,10 +1,15 @@
 import { shuffle } from './utils.js';
-import { Elements } from './graphics.js';
+import { Elements } from './Graphics.js';
 import { isPhone } from './utils.js';
+import { soundEffects } from './main.js';
+
+const SoundMode = { FAIL: 'fail', WIN: 'win', NONE: 'none' };
 
 const PIXEL_SIZE = isPhone() ? 32 : 36; // target square side length in CSS pixels
 const SNAP_MS = 120; // delay between opacity steps (1→0.5→0 or reverse)
 const buffer = 300;
+const TARGET_TRANSITION_MS = 2000;
+const FRAME_MS = 1000 / 60;
 
 export class PixelTransition {
     constructor() {
@@ -58,15 +63,21 @@ export class PixelTransition {
     // Advances exactly pixelsPerFrame pixels per animation frame.
     // onStep1 fires immediately on a pixel's turn; onStep2 fires SNAP_MS later.
     // The returned promise resolves once every pixel's onStep2 has run.
-    _animate(pixels, pixelsPerFrame, onStep1, onStep2) {
+    _animate(pixels, pixelsPerFrame, onStep1, onStep2, soundMode = SoundMode.NONE) {
         return new Promise(resolve => {
             let idx = 0;
             let pending = 0;
             const total = pixels.length;
+            if (soundMode === SoundMode.FAIL) soundEffects.resetFailTick();
+            else if (soundMode === SoundMode.WIN) soundEffects.resetWinTick();
 
             const tick = () => {
                 const end = Math.min(idx + pixelsPerFrame, total);
                 for (let i = idx; i < end; i++) {
+                    if (i % 6 === 0) {
+                        if (soundMode === SoundMode.FAIL) soundEffects.failTick();
+                        else if (soundMode === SoundMode.WIN) soundEffects.winTick();
+                    }
                     const pixel = pixels[i];
                     onStep1(pixel);
                     pending++;
@@ -84,27 +95,34 @@ export class PixelTransition {
         });
     }
 
-    async fillIn(pixelsPerFrame = 3) {
+    _pixelsPerFrame() {
+        const framesNeeded = (TARGET_TRANSITION_MS - SNAP_MS) / FRAME_MS;
+        return Math.max(1, Math.round(this._pixels.length / framesNeeded));
+    }
+
+    async fillIn() {
         const pixels = this._pixels;
         for (const pixel of pixels) pixel.className = 'pixel';
         shuffle(pixels);
         this._transitionPromise = this._animate(
-            pixels, pixelsPerFrame,
+            pixels, this._pixelsPerFrame(),
             pixel => pixel.classList.add('half'),
-            pixel => { pixel.classList.remove('half'); pixel.classList.add('visible'); }
+            pixel => { pixel.classList.remove('half'); pixel.classList.add('visible'); },
+            SoundMode.FAIL
         );
         await this._transitionPromise;
         await new Promise(r => setTimeout(r, buffer));
     }
 
-    async fillOut(pixelsPerFrame = 3) {
+    async fillOut() {
         const pixels = this._pixels;
         for (const pixel of pixels) pixel.className = 'pixel visible';
         pixels.reverse();
         this._transitionPromise = this._animate(
-            pixels, pixelsPerFrame,
+            pixels, this._pixelsPerFrame(),
             pixel => { pixel.classList.remove('visible'); pixel.classList.add('half'); },
-            pixel => pixel.classList.remove('half')
+            pixel => pixel.classList.remove('half'),
+            SoundMode.WIN
         );
         await this._transitionPromise;
         await new Promise(r => setTimeout(r, buffer));

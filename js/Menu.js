@@ -1,10 +1,12 @@
-import { percentScoreFloat } from "./utils.js";
+import { percentScoreFloat, fitFontSize, shuffle } from "./utils.js";
 import { soundEffects } from "./main.js";
+import { Graphics } from "./graphics.js";
 
 const PREF_THEME = 'pref_theme';
 const PREF_CHALLENGE = 'pref_challenge';
 const PREF_SOUND = 'pref_sound';
 const PREF_DATE = 'pref_date';
+const TITLE_SPLASH_COUNT = 1;
 
 export class Menu {
 	// index: { 'YYYY/MM/DD': 'image-index-filename.json', ... }
@@ -109,20 +111,20 @@ export class Menu {
 
 	_build() {
 		this.container.innerHTML = `
-			<div class="menu-card" id="menu-card">
+			<div id="menu-main">
+				<div class="menu-card" id="menu-card">
 
-				<div class="menu-header">
-					<span class="menu-title">I'm not a Robot</span>
-				</div>
+				<!-- Search bar header -->
+				<div class="menu-title"><div class="menu-title-text"></div></div>
 
 				<!-- Date cell — green (opens picker) -->
 				<div class="menu-cell menu-cell--green">
 					<div class="menu-cell-inner">
 						<div class="menu-cell-back"></div>
 						<button class="menu-cell-front menu-toggle" id="menu-date-open">
-							<span class="material-symbols-rounded">calendar_today</span>
+							<span class="material-icons-outlined">calendar_today</span>
 							<span id="menu-date-label" class="menu-date-label"></span>
-							<span class="material-symbols-rounded menu-date-chevron">chevron_right</span>
+							<span class="material-icons-outlined menu-date-chevron">chevron_right</span>
 						</button>
 					</div>
 				</div>
@@ -133,11 +135,11 @@ export class Menu {
 						<div class="menu-cell-back"></div>
 						<div class="menu-cell-front menu-actions">
 							<button class="menu-btn menu-btn-primary" id="menu-continue">
-								<span class="material-symbols-rounded">play_arrow</span>
+								<span class="material-icons-outlined">play_arrow</span>
 								<span id="menu-continue-label">Play</span>
 							</button>
 							<button class="menu-btn menu-btn-secondary menu-btn-icon" id="menu-restart">
-								<span class="material-symbols-rounded">restart_alt</span>
+								<span class="material-icons-outlined">restart_alt</span>
 							</button>
 						</div>
 					</div>
@@ -148,7 +150,7 @@ export class Menu {
 					<div class="menu-cell-inner">
 						<div class="menu-cell-back"></div>
 						<button class="menu-cell-front menu-toggle" id="menu-challenge">
-							<span class="material-symbols-rounded">sports_esports</span>
+							<span class="material-icons-outlined">sports_esports</span>
 							<span class="menu-toggle-label">Game mode</span>
 							<span class="menu-toggle-status"></span>
 						</button>
@@ -160,23 +162,24 @@ export class Menu {
 					<div class="menu-cell-inner">
 						<div class="menu-cell-back"></div>
 						<button class="menu-cell-front menu-toggle" id="menu-options-open">
-							<span class="material-symbols-rounded">settings</span>
+							<span class="material-icons-outlined">settings</span>
 							<span class="menu-date-label">Options</span>
-							<span class="material-symbols-rounded menu-date-chevron">chevron_right</span>
+							<span class="material-icons-outlined menu-date-chevron">chevron_right</span>
 						</button>
 					</div>
 				</div>
 
+				</div>
 			</div>
 
 			<!-- Options panel -->
 			<div class="date-picker-panel options-panel" id="options-panel">
-				<div class="options-panel-header">Options</div>
+				<div class="options-panel-header menu-header">Options</div>
 				<div class="menu-cell">
 					<div class="menu-cell-inner">
 						<div class="menu-cell-back"></div>
 						<button class="menu-cell-front menu-toggle" id="menu-sound">
-							<span class="material-symbols-rounded">volume_up</span>
+							<span class="material-icons-outlined">volume_up</span>
 							<span class="menu-toggle-label">Sound</span>
 							<span class="menu-toggle-status"></span>
 						</button>
@@ -186,7 +189,7 @@ export class Menu {
 					<div class="menu-cell-inner">
 						<div class="menu-cell-back"></div>
 						<button class="menu-cell-front menu-toggle" id="menu-theme">
-							<span class="material-symbols-rounded">dark_mode</span>
+							<span class="material-icons-outlined">dark_mode</span>
 							<span class="menu-toggle-label">Theme</span>
 							<span class="menu-toggle-status"></span>
 						</button>
@@ -201,13 +204,13 @@ export class Menu {
 
 			<!-- Date picker panel -->
 			<div class="date-picker-panel" id="date-picker-panel">
-				<div class="date-picker-header">
+				<div class="date-picker-header menu-header">
 					<button class="menu-arrow-btn date-picker-nav-btn" id="picker-month-back">
-						<span class="material-symbols-rounded">chevron_left</span>
+						<span class="material-icons-outlined">chevron_left</span>
 					</button>
 					<span class="date-picker-month-label" id="picker-month-label"></span>
 					<button class="menu-arrow-btn date-picker-nav-btn" id="picker-month-fwd">
-						<span class="material-symbols-rounded">chevron_right</span>
+						<span class="material-icons-outlined">chevron_right</span>
 					</button>
 				</div>
 				<div class="date-picker-grid" id="date-picker-grid"></div>
@@ -281,18 +284,20 @@ export class Menu {
 
 	_showDatePicker() {
 		if (this.availableMonths.length === 0) return;
+		this._titleGen = (this._titleGen ?? 0) + 1;
 		const selectedMonth = this.selectedDate?.slice(0, 7);
 		const idx = this.availableMonths.indexOf(selectedMonth);
 		this._pickerMonthIndex = idx >= 0 ? idx : 0;
 
-		const card = this.container.querySelector('#menu-card');
+		const card = this.container.querySelector('#menu-main');
 		card.style.display = 'none';
 		this._animateOnNextRender = true;
 		this._renderPickerMonth(); // also adds .active to the picker panel
 	}
 
 	_showOptions() {
-		this.container.querySelector('#menu-card').style.display = 'none';
+		this._titleGen = (this._titleGen ?? 0) + 1;
+		this.container.querySelector('#menu-main').style.display = 'none';
 		const panel = this.container.querySelector('#options-panel');
 		panel.classList.remove('flip-anim');
 		panel.classList.add('active');
@@ -303,14 +308,80 @@ export class Menu {
 	_hideOptions() {
 		const panel = this.container.querySelector('#options-panel');
 		panel.classList.remove('active', 'flip-anim');
-		this.container.querySelector('#menu-card').style.display = '';
+		this.container.querySelector('#menu-main').style.display = '';
+		this._animateTitle();
 	}
 
 	_hideDatePicker() {
-		const card = this.container.querySelector('#menu-card');
+		const main = this.container.querySelector('#menu-main');
 		const picker = this.container.querySelector('#date-picker-panel');
 		picker.classList.remove('active');
-		card.style.display = '';
+		main.style.display = '';
+		this._animateTitle();
+	}
+
+	_animateTitle() {
+		this._titleGen = (this._titleGen ?? 0) + 1;
+		this._runTitleLoop(this._titleGen);
+	}
+
+	async _runTitleLoop(gen) {
+		const outerEl = this.container.querySelector('.menu-title');
+		const titleEl = this.container.querySelector('.menu-title-text');
+		const googleColors = ['var(--google-blue)', 'var(--google-red)', 'var(--google-green)', 'var(--google-yellow)'];
+
+		const fetchPromise = fetch('https://backend.clayrobot.net/memorygame/splash')
+			.then(r => r.json())
+			.catch(e => (console.error('splash fetch failed:', e), null));
+
+		const typeOne = async text => {
+			const dummy = document.createElement('div');
+			dummy.className = 'menu-title menu-title-buffer';
+			dummy.style.width = titleEl.offsetWidth + 'px';
+			document.body.appendChild(dummy);
+			titleEl.style.fontSize = fitFontSize(dummy, text, outerEl.offsetHeight);
+			dummy.remove();
+			await Graphics.typeTextColored(text, googleColors, 150, titleEl);
+		};
+		titleEl.innerHTML = '';
+		const data = await fetchPromise;
+		const entries = (data?.entries?.length > 0) ? data.entries : null;
+		if (this._titleGen !== gen) return;
+
+		await typeOne("I'm not a Robot");
+		if (this._titleGen !== gen) return;
+		await new Promise(r => setTimeout(r, 3000));
+		if (this._titleGen !== gen) return;
+
+		if (!entries) return;
+
+		const queue = shuffle([...entries]);
+
+		while (this._titleGen === gen) {
+			for (let i = 0; i < TITLE_SPLASH_COUNT; i++) {
+				if (queue.length === 0) queue.push(...shuffle([...entries]));
+
+				await Graphics.deleteText(60, titleEl);
+				if (this._titleGen !== gen) return;
+				await new Promise(r => setTimeout(r, 300));
+				if (this._titleGen !== gen) return;
+
+				shuffle(googleColors);
+				await typeOne(queue.pop());
+				if (this._titleGen !== gen) return;
+				await new Promise(r => setTimeout(r, 3000));
+				if (this._titleGen !== gen) return;
+			}
+
+			await Graphics.deleteText(60, titleEl);
+			if (this._titleGen !== gen) return;
+			await new Promise(r => setTimeout(r, 300));
+			if (this._titleGen !== gen) return;
+
+			await typeOne("I'm not a Robot");
+			if (this._titleGen !== gen) return;
+			await new Promise(r => setTimeout(r, 3000));
+		}
 	}
 
 	_renderPickerMonth() {
@@ -381,13 +452,13 @@ export class Menu {
 
 		const soundBtn = this.container.querySelector('#menu-sound');
 		soundBtn.classList.toggle('active', !this.soundMuted);
-		soundBtn.querySelector('.material-symbols-rounded').textContent = this.soundMuted ? 'volume_off' : 'volume_up';
+		soundBtn.querySelector('.material-icons-outlined').textContent = this.soundMuted ? 'volume_off' : 'volume_up';
 		soundBtn.querySelector('.menu-toggle-status').textContent = this.soundMuted ? 'Off' : 'On';
 
 		const themeBtn = this.container.querySelector('#menu-theme');
-		themeBtn.classList.toggle('active', this.darkMode);
-		themeBtn.querySelector('.material-symbols-rounded').textContent = this.darkMode ? 'dark_mode' : 'light_mode';
-		themeBtn.querySelector('.menu-toggle-status').textContent = this.darkMode ? 'Dark' : 'Default';
+		// themeBtn.classList.toggle('active', this.darkMode);
+		themeBtn.querySelector('.material-icons-outlined').textContent = this.darkMode ? 'dark_mode' : 'light_mode';
+		themeBtn.querySelector('.menu-toggle-status').textContent = this.darkMode ? 'Dark' : 'Light';
 
 		// action buttons also depend on challenge mode (different save slot)
 		// this._refreshActionBtns();
@@ -419,7 +490,7 @@ export class Menu {
 		// Hide the game container now so it doesn't show through while we wait.
 		document.getElementById('game-container').style.display = 'none';
 
-		// Wait for all fonts (including Material Symbols) to finish loading,
+		// Wait for all fonts (including Material Icons) to finish loading,
 		// then yield one animation frame so the browser can measure and lay out
 		// the updated text before we make the menu visible.
 		await document.fonts.ready;
@@ -427,9 +498,13 @@ export class Menu {
 
 		this.container.classList.add('fade-in');
 		this.container.classList.add('active');
+		document.getElementById('background').classList.remove('active');
+
+		this._animateTitle();
 	}
 
 	async hide() {
+		this._titleGen = (this._titleGen ?? 0) + 1;
 		// Reveal the game container immediately so the game can lay out
 		// while the flip animation plays on top.
 		document.getElementById('game-container').style.display = '';

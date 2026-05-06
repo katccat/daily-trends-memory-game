@@ -2,7 +2,8 @@
 :root {
 	--google-blue:   #4285F4;
 	--google-red:    #EA4335;
-	--google-yellow: #FBBC05;
+	/* --google-yellow: #FBBC05; */
+	--google-yellow: #ffbf00;
 	--google-green:  #34A853;
 }
 
@@ -22,10 +23,9 @@
 #options-panel > .menu-cell:nth-child(2) { --flip-delay: 0ms; }
 #options-panel > .menu-cell:nth-child(3) { --flip-delay: 120ms; }
 
-/* Material Symbols Rounded base style */
-.material-symbols-rounded {
-	font-family: 'Material Symbols Rounded';
-	font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+/* Material Icons Outlined base style */
+.material-icons-outlined {
+	font-family: 'Material Icons Outlined';
 	font-size: 20px;
 	line-height: 1;
 	letter-spacing: normal;
@@ -45,7 +45,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: var(--bg-color);
+	/* background-color: var(--bg-color); */
 	z-index: 50;
 	opacity: 0;
 	pointer-events: none;
@@ -57,40 +57,66 @@
 }
 
 /* === Card ================================================================= */
-/* Gap between cells shows bg-color as a 2px divider line */
 .menu-card {
+	/* border-right: 3px solid var(--cell-edge-color); */
 	backface-visibility: hidden;
 	-webkit-backface-visibility: hidden;
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
-	width: min(88vw, 360px);
+	width: min(95vw, 540px);
 	background-color: var(--bg-color);
-	box-shadow:
-		0 10px 20px rgba(0, 0, 0, 0.19),
-		0 6px 6px rgba(0, 0, 0, 0.23);
+	box-shadow: var(--card-shadow);
 }
 
-[data-theme="dark"] .menu-card {
-	box-shadow: none;
+/* 3px divider between cells only — not between the search bar and first cell */
+.menu-card > .menu-cell + .menu-cell {
+	/* margin-top: 3px; */
 }
 
-/* === Header (static — not a flipping cell) ================================ */
-.menu-header {
-	background-color: var(--google-blue);
-	color: white;
-	padding: 18px 20px;
-	text-align: center;
-}
-
-[data-theme="dark"] .menu-header {
-	background-color: #1a56db;
+/* === Search bar inside the card =========================================== */
+#menu-main {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .menu-title {
-	font-size: 1.25rem;
+	padding: 16px 20px;
+	background-color: var(--bg-color);
+	border-left: 4px solid var(--cell-edge-color);
+	z-index: 100;
+	font-family: "Noto Sans";
+	color: var(--google-blue);
 	font-weight: 500;
-	letter-spacing: 0.01em;
+	font-size: 2.6rem;
+	letter-spacing: 0.04em;
+	overflow: hidden;
+	height: 88px;
+	display: flex;
+	align-items: center;
+}
+.menu-title-text {
+	width: 100%;
+	overflow: hidden;
+}
+.menu-title-buffer {
+	overflow: revert;
+	visibility: hidden;
+	position: absolute;
+	height: revert;
+	display: revert;
+}
+
+.menu-search-icon {
+	font-size: 28px !important;
+	color: #9aa0a6;
+	flex-shrink: 0;
+}
+
+.menu-header {
+	z-index: 100;
+	font-size: 1.25rem;
+	letter-spacing: 0.06em;
 }
 
 /* === Flip cells =========================================================== */
@@ -105,16 +131,17 @@
 */
 .menu-cell {
 	perspective: 700px;
-	height: 50px;
+	height: 56px;
 }
 
 .menu-cell-inner {
-	transform: rotateX(-180deg); /* start showing the colored back face */
+	height: 100%;
+	transform: rotateX(180deg); /* start showing the colored back face */
 	transform-style: preserve-3d;
 }
 
 @keyframes menu-cell-flip {
-	from { transform: rotateX(-180deg); }
+	from { transform: rotateX(180deg); }
 	to   { transform: rotateX(0deg); }
 }
 
@@ -126,12 +153,13 @@
 
 /* Trigger the reveal in the options panel when it opens */
 .options-panel.flip-anim .menu-cell-inner {
-	animation: menu-cell-flip 0.5s ease-out both;
+	animation: menu-cell-flip 0.6s ease-out both;
 	animation-delay: var(--flip-delay, 0ms);
 }
 
 .menu-cell-back,
 .menu-cell-front {
+	height: 100%;
 	backface-visibility: hidden;
 	-webkit-backface-visibility: hidden;
 }
@@ -152,12 +180,9 @@
 	width: 100%;
 	box-sizing: border-box;
 	background-color: var(--frame-color);
-	color: #202124;
-	border-left: 4px solid var(--google-color);
-}
-
-[data-theme="dark"] .menu-cell-front {
-	color: #e8eaed;
+	/* background-color: var(--cell-color); */
+	color: var(--ui-text-color);
+	border-left: 5px solid var(--google-color);
 }
 
 /* === Shared panel styles ================================================== */
@@ -165,15 +190,9 @@
 .date-picker-panel {
 	display: none;
 	flex-direction: column;
-	width: min(92vw, 380px);
+	width: min(92vw, 480px);
 	background-color: var(--bg-color);
-	box-shadow:
-		0 10px 20px rgba(0, 0, 0, 0.19),
-		0 6px 6px rgba(0, 0, 0, 0.23);
-}
-
-[data-theme="dark"] .date-picker-panel {
-	box-shadow: none;
+	box-shadow: var(--card-shadow);
 }
 
 .date-picker-panel.active {
@@ -181,6 +200,7 @@
 }
 
 .date-picker-footer {
+	height: 56px;
 	display: flex;
 	background-color: var(--frame-color);
 	padding: 8px;
@@ -192,14 +212,18 @@
 	align-items: center;
 	background-color: var(--google-green);
 	color: white;
-	padding: 10px 8px;
+	padding: 14px 8px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.28);
 }
 
 .date-picker-month-label {
 	flex: 1;
 	text-align: center;
-	font-size: 1rem;
-	font-weight: 500;
+	font-size: 1.1rem;
+	/* font-weight: 500; */
+	/* text-transform: uppercase; */
+	/* letter-spacing: 0.04em; */
+	letter-spacing: revert;
 }
 
 .date-picker-nav-btn {
@@ -214,17 +238,22 @@
 	display: grid;
 	grid-template-columns: repeat(6, 1fr);
 	grid-template-rows: repeat(6, 1fr);
-	gap: 4px;
-	padding: 4px;
-	background-color: var(--bg-color);
+	gap: 6px;
+	padding: 6px;
+	background-color: var(--frame-color);
+}
+@media (max-width: 600px) {
+	.date-picker-grid {
+		grid-template-columns: repeat(5, 1fr);
+		grid-template-rows: repeat(7, 1fr);
+	}
 }
 
 /* === Date cells (game-card aesthetic) ====================================== */
 .date-cell {
-	perspective: 2000px;
+	perspective: 200px;
 	cursor: pointer;
 	aspect-ratio: 1;
-	container-type: inline-size;
 }
 
 .date-cell-inner {
@@ -261,8 +290,12 @@
 	position: absolute;
 	inset: 0;
 	overflow: hidden;
+	container-type: inline-size;
 	background-color: var(--cell-color);
-	box-shadow: inset 0px 3px 0px 0px var(--cell-edge-color);
+	box-shadow:
+		/* inset 0px 3px 0px 0px var(--cell-edge-color), */
+		0 1px 3px rgba(0, 0, 0, .12),
+		0 1px 2px rgba(0, 0, 0, .24);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -279,7 +312,6 @@
 }
 
 .date-cell-day {
-	font-family: "Google Sans";
 	font-size: 32cqi;
 	line-height: 1;
 	position: relative;
@@ -319,12 +351,12 @@
 
 .date-cell-fill--normal::before {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 8'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%236cb5ff' stop-opacity='0.6'/%3E%3Cstop offset='100%25' stop-color='%236cb5ff' stop-opacity='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 0%2C4 C 6.4%2C1.5 13.6%2C1.5 20%2C4 C 26.4%2C6.5 33.6%2C6.5 40%2C4 L 40%2C8 L 0%2C8 Z' fill='url(%23g)'/%3E%3C/svg%3E");
-	animation: date-fill-wave1 3s linear infinite;
+	animation: date-fill-wave1 4s linear infinite;
 }
 
 .date-cell-fill--challenge::before {
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 8'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ff87cb' stop-opacity='0.6'/%3E%3Cstop offset='100%25' stop-color='%23ff87cb' stop-opacity='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 0%2C4 C 6.4%2C1.5 13.6%2C1.5 20%2C4 C 26.4%2C6.5 33.6%2C6.5 40%2C4 L 40%2C8 L 0%2C8 Z' fill='url(%23g)'/%3E%3C/svg%3E");
-	animation: date-fill-wave2 2s linear infinite;
+	animation: date-fill-wave2 3s linear infinite;
 }
 
 @keyframes date-fill-wave1 {
@@ -337,30 +369,41 @@
 	to   { background-position-x: 20px; }
 }
 
+[data-theme="dark"] .date-cell-fill--normal,
+[data-theme="dark"] .date-cell-fill--challenge {
+	mix-blend-mode: screen;
+	opacity: 0.65;
+}
+
 /* === Options panel ======================================================== */
 .options-panel {
+	width: min(320px, 92vw);
 	--google-color: var(--google-yellow);
-	gap: 2px;
+	background-color: var(--bg-color);
+	/* gap: 3px; */
 }
 
 /* Options panel rows have no left border accent — they sit flush in the panel */
 .options-panel .menu-toggle {
 	border-left: none;
+	/* border-color: var(--cell-edge-color); */
 }
 
 .options-panel-header {
 	background-color: var(--google-yellow);
 	color: white;
-	padding: 14px 16px;
+	padding: 20px 24px;
 	text-align: center;
-	font-size: 1rem;
+	/* font-size: 1rem; */
 	font-weight: 500;
+	/* letter-spacing: 0.06em; */
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.28);
 }
 
 /* === Actions row ========================================================== */
 .menu-actions {
-	gap: 8px;
-	padding: 10px 12px;
+	gap: 10px;
+	padding: 8px 18px;
 }
 
 /* === Buttons ============================================================== */
@@ -370,14 +413,18 @@
 	align-items: center;
 	justify-content: center;
 	gap: 6px;
-	padding: 10px 12px;
+	/* padding: 10px 14px; */
+	height: 100%;
 	border: none;
 	cursor: pointer;
 	font-family: inherit;
-	font-size: 0.875rem;
+	font-size: 1rem;
 	font-weight: 500;
-	transition: opacity 0.15s, background-color 0.15s;
+	border-radius: 2px;
+	transition: box-shadow 0.2s, background-color 0.15s;
 	white-space: nowrap;
+	position: relative;
+	overflow: hidden;
 }
 
 .menu-btn:disabled {
@@ -385,26 +432,39 @@
 	cursor: default;
 }
 
-.menu-btn .material-symbols-rounded {
+.menu-btn .material-icons-outlined {
 	font-size: 18px;
 }
 
 .menu-btn-primary {
 	background-color: var(--google-blue);
 	color: white;
+	/* MD1 raised button z-depth-2 */
+	box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.12), 0 1px 5px 0 rgba(0,0,0,.20);
 }
 
 .menu-btn-primary:not(:disabled):hover {
-	opacity: 0.85;
+	box-shadow: 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12), 0 2px 4px -1px rgba(0,0,0,.20);
+}
+
+.menu-btn-primary:not(:disabled):active {
+	box-shadow: 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12), 0 1px 3px 0 rgba(0,0,0,.20);
 }
 
 .menu-btn-secondary {
 	background-color: var(--cell-color);
 	color: inherit;
+	/* MD1 raised button z-depth-2 */
+	box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.12), 0 1px 5px 0 rgba(0,0,0,.20);
 }
 
 .menu-btn-secondary:not(:disabled):hover {
 	background-color: var(--cell-edge-color);
+	box-shadow: 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12), 0 2px 4px -1px rgba(0,0,0,.20);
+}
+
+.menu-btn-secondary:not(:disabled):active {
+	box-shadow: 0 1px 1px 0 rgba(0,0,0,.14), 0 2px 1px -1px rgba(0,0,0,.12), 0 1px 3px 0 rgba(0,0,0,.20);
 }
 
 /* Icon-only variant — shrinks to fit the glyph */
@@ -439,23 +499,28 @@
 
 /* === Sub-panel open buttons (date, options) ================================ */
 /* These are .menu-cell-front elements styled as row buttons with a chevron */
-.menu-date-btn {
-	gap: 12px;
-	padding: 14px 16px;
+.menu-date-btn,
+.menu-toggle {
+	padding: 17px 16px;
 	border-top: none;
 	border-right: none;
 	border-bottom: none;
 	cursor: pointer;
+	text-align: left;
 	font-family: inherit;
 	font-size: 0.875rem;
-	font-weight: 500;
-	text-align: left;
 	transition: background-color 0.15s;
-	color: inherit;
 }
 
-.menu-date-btn:hover {
+.menu-date-btn:hover,
+.menu-toggle:hover {
 	background-color: var(--cell-color);
+}
+
+.menu-date-btn {
+	gap: 12px;
+	font-weight: 500;
+	color: inherit;
 }
 
 .menu-date-label {
@@ -469,6 +534,7 @@
 }
 
 .menu-date-chevron {
+	color: var(--ui-text-color) !important;
 	opacity: 0.35;
 }
 
@@ -476,25 +542,15 @@
 /* .menu-toggle is also .menu-cell-front (a <button> element) */
 .menu-toggle {
 	gap: 14px;
-	padding: 14px 16px;
-	border-top: none;
-	border-right: none;
-	border-bottom: none;
-	cursor: pointer;
-	text-align: left;
-	font-family: inherit;
-	font-size: 0.875rem;
-	transition: background-color 0.15s;
 }
 
-.menu-toggle:hover {
-	background-color: var(--cell-color);
-}
-
-.menu-toggle .material-symbols-rounded {
+.menu-toggle .material-icons-outlined {
 	font-size: 22px;
 }
-
+.options-panel .menu-toggle,
+.options-panel .menu-toggle.active {
+	--google-color: var(--ui-text-color);
+}
 .menu-toggle.active {
 	color: var(--google-color);
 }
@@ -503,8 +559,10 @@
 	filter: brightness(1.2);
 }
 
-.menu-toggle.active .material-symbols-rounded {
-	font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+.menu-toggle.active .material-icons-outlined,
+.menu-toggle .material-icons-outlined {
+	color: var(--google-color);
+	/* font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; */
 }
 
 .menu-toggle-label {
@@ -515,11 +573,14 @@
 
 .menu-toggle-status {
 	font-size: 0.775rem;
-	opacity: 0.55;
+	/* opacity: 0.8; */
 	min-width: 2ch;
 	text-align: right;
+	opacity: 0.85;
 }
 
 .menu-toggle.active .menu-toggle-status {
-	opacity: 0.85;
+	opacity: 1;
+	font-weight: 500;
+	color: var(--google-color);
 }

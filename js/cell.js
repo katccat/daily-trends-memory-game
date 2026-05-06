@@ -1,4 +1,5 @@
 import { Config } from './config.js';
+import { soundEffects } from './SoundEffects.js';
 
 export class Cell {
 	static State = {
@@ -134,6 +135,7 @@ export class Cell {
 	}
 	async unhide() {
 		if (this.state !== Cell.State.DEFAULT || this.game.state.coolDown) return;
+		soundEffects.flip();
 		this.game.state.cellsFading = false;
 		this.state = Cell.State.REVEALED;
 		this.game.state.revealedCells.push(this);
