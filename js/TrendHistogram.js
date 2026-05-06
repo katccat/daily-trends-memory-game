@@ -102,13 +102,14 @@ export class TrendHistogram {
 			fill.className = 'hist-fill';
 			fill.style.height = '0%';
 
-			track.append(fill);
-
 			const label = document.createElement('div');
 			label.className = 'hist-label';
 			label.textContent = bucket.label;
 
-			col.append(track, label);
+			fill.append(label);
+			track.append(fill);
+
+			col.append(track);
 			container.append(col);
 			this._bars.set(i, { fill, track, col });
 		});
@@ -166,7 +167,7 @@ export class TrendHistogram {
 			for (const { fill, track, relPct } of visible) {
 				track.style.height = '100%';
 				fill.style.background = colorMap.get(relPct);
-				fill.style.boxShadow = `inset 5px 0px 0px 0px ${shadowMap.get(relPct)}`;
+				fill.style.boxShadow = `inset 5px 0px 0px 0px ${shadowMap.get(relPct)}, var(--card-shadow)`;
 				const targetPct = relPct * 100;
 				if (fill.style.height === '0%' && relPct > 0) {
 					toReveal.push({ fill, targetPct });
@@ -189,7 +190,7 @@ export class TrendHistogram {
 			for (const { fill, track, relPct, completionRate, bucketIdx } of visible) {
 				track.style.height = `${this._totals[bucketIdx] / this._maxTotal * 100}%`;
 				fill.style.background = colorMap.get(relPct);
-				fill.style.boxShadow = `inset 5px 0px 0px 0px ${shadowMap.get(relPct)}`;
+				fill.style.boxShadow = `inset 5px 0px 0px 0px ${shadowMap.get(relPct)}, var(--card-shadow)`;
 
 				const targetPct = completionRate * 100;
 				if (fill.style.height === '0%' && completionRate > 0) {

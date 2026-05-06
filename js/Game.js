@@ -2,7 +2,7 @@ import { Config } from './config.js';
 import { Elements } from './Graphics.js';
 import { Graphics } from './Graphics.js';
 import { GridLayout } from './gridlayout.js';
-import { Cell } from './cell.js';
+import { Cell } from './Cell.js';
 import { Board } from './board.js';
 import { BoardCreator } from './board.js';
 import { randomItem, shuffle } from './utils.js';
@@ -11,6 +11,7 @@ import { TrendSelector } from './TrendSelector.js';
 import { handleClick } from './handleClick.js';
 import { PixelTransition } from './PixelTransition.js';
 import { TrendHistogram } from './TrendHistogram.js';
+import { soundEffects } from './SoundEffects.js';
 
 export class Game {
 	constructor(trendData, challengeMode = false) {
@@ -272,6 +273,7 @@ export class Game {
 		const typeSpeed = 90;
 		Elements.splashContainer.classList.add('fade-in');
 		if (showTrendHistogram) {
+			soundEffects.marimba();
 			await Promise.all([
 				Graphics.typeText(text, typeSpeed, true, Elements.splashText), 
 				this.trendHistogram.rescale()

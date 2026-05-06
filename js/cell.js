@@ -135,7 +135,9 @@ export class Cell {
 	}
 	async unhide() {
 		if (this.state !== Cell.State.DEFAULT || this.game.state.coolDown) return;
-		soundEffects.flip();
+		const firstRevealed = this.game.state.revealedCells[0];
+		const isWinningMatch = firstRevealed && firstRevealed.getName() === this.getName() && this.game.state.unsolvedCells === 2;
+		if (!isWinningMatch) soundEffects.flip();
 		this.game.state.cellsFading = false;
 		this.state = Cell.State.REVEALED;
 		this.game.state.revealedCells.push(this);

@@ -16,15 +16,17 @@ export async function handleClick (game) {
 			game.state.revealedCells.length = 0;
 
 			if (cell1.getName() === cell2.getName()) {
-				soundEffects.match();
+				
 				cell1.solve();
 				cell2.solve();
 				game.cellLoopScheduler.newLoop(cell1, cell2);
 				game.state.unsolvedCells -= 2;
 				game.state.solvedCells.push(cell1, cell2);
 				if (game.state.unsolvedCells <= 0) {
+					soundEffects.matchWin();
 					game.winGame();
 				}
+				else soundEffects.match();
 			}
 			else {
 				// soundEffects.mismatch();

@@ -6,7 +6,7 @@ const PREF_THEME = 'pref_theme';
 const PREF_CHALLENGE = 'pref_challenge';
 const PREF_SOUND = 'pref_sound';
 const PREF_DATE = 'pref_date';
-const TITLE_SPLASH_COUNT = 1;
+const TITLE_SPLASH_COUNT = 2;
 
 export class Menu {
 	// index: { 'YYYY/MM/DD': 'image-index-filename.json', ... }
@@ -344,44 +344,43 @@ export class Menu {
 			await Graphics.typeTextColored(text, googleColors, 150, titleEl);
 		};
 		titleEl.innerHTML = '';
-		const data = await fetchPromise;
-		const entries = (data?.entries?.length > 0) ? data.entries : null;
-		if (this._titleGen !== gen) return;
+		
 
 		await typeOne("I'm not a Robot");
 		if (this._titleGen !== gen) return;
-		await new Promise(r => setTimeout(r, 3000));
-		if (this._titleGen !== gen) return;
 
-		if (!entries) return;
+		const [data] = await Promise.all([
+			fetchPromise,
+			new Promise(r => setTimeout(r, 3000))
+		]);
+		const entries = (data?.entries?.length > 0) ? data.entries : null;
+		if (this._titleGen !== gen || !entries) return;
 
 		const queue = shuffle([...entries]);
 
-		while (this._titleGen === gen) {
-			for (let i = 0; i < TITLE_SPLASH_COUNT; i++) {
-				if (queue.length === 0) queue.push(...shuffle([...entries]));
+		for (let i = 0; i < TITLE_SPLASH_COUNT; i++) {
 
-				await Graphics.deleteText(60, titleEl);
-				if (this._titleGen !== gen) return;
-				await new Promise(r => setTimeout(r, 300));
-				if (this._titleGen !== gen) return;
-
-				shuffle(googleColors);
-				await typeOne(queue.pop());
-				if (this._titleGen !== gen) return;
-				await new Promise(r => setTimeout(r, 3000));
-				if (this._titleGen !== gen) return;
-			}
+			if (queue.length === 0) return;
 
 			await Graphics.deleteText(60, titleEl);
 			if (this._titleGen !== gen) return;
 			await new Promise(r => setTimeout(r, 300));
 			if (this._titleGen !== gen) return;
 
-			await typeOne("I'm not a Robot");
+			shuffle(googleColors);
+			await typeOne(queue.pop());
 			if (this._titleGen !== gen) return;
 			await new Promise(r => setTimeout(r, 3000));
+			if (this._titleGen !== gen) return;
 		}
+
+		await Graphics.deleteText(60, titleEl);
+		if (this._titleGen !== gen) return;
+		await new Promise(r => setTimeout(r, 300));
+		if (this._titleGen !== gen) return;
+
+		await typeOne("I'm not a Robot");
+		
 	}
 
 	_renderPickerMonth() {
@@ -465,6 +464,7 @@ export class Menu {
 	}
 
 	_start(restart) {
+		soundEffects.unlock();
 		this._setLoading(true);
 		if (this._callback) {
 			this._callback({

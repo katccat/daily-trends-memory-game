@@ -41,6 +41,7 @@
 		transform 0.5s ease-out,
 		box-shadow 0.4s linear;
 	will-change: transform;
+	box-shadow: var(--card-shadow);
 }
 
 .cell-card:hover {
