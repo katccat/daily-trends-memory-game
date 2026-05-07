@@ -25,12 +25,12 @@ export class SoundEffects {
 		const ctx = this.ctx;
 		if (ctx.state === 'suspended') await ctx.resume();
 		await Promise.all([
-			this._loadBuffer('flip',    '/sound/gentle_click.mp3'),
-			this._loadBuffer('bells',   '/sound/bells.mp3'),
-			this._loadBuffer('whistle', '/sound/whistle.mp3'),
-			this._loadBuffer('chatter', '/sound/chatter.mp3'),
-			this._loadBuffer('snap',    '/sound/snap.mp3'),
-			this._loadBuffer('marimba', '/sound/marimba.mp3'),
+			this._loadBuffer('flip',    './sound/gentle_click.mp3'),
+			this._loadBuffer('bells',   './sound/bells.mp3'),
+			this._loadBuffer('whistle', './sound/whistle.mp3'),
+			this._loadBuffer('chatter', './sound/chatter.mp3'),
+			this._loadBuffer('snap',    './sound/snap.mp3'),
+			this._loadBuffer('marimba', './sound/marimba.mp3'),
 		]);
 	}
 
