@@ -4,8 +4,7 @@ const BUCKETS = [
 	{ label: '5K',   min: 1_000,      max: 5_000     },
 	{ label: '10K',  min: 5_000,      max: 10_000    },
 	{ label: '50K',  min: 10_000,     max: 50_000    },
-	{ label: '100K', min: 50_000,     max: 100_000   },
-	{ label: '1M', min: 100_000,    max: Infinity   },
+	{ label: '100K', min: 50_000,     max: Infinity   },
 ];
 
 const colors = ['#4285F4', '#34A853', '#FBBC05', '#EA4335'];
